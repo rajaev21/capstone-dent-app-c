@@ -15,14 +15,8 @@ if (isset($_GET['appoint'])) {
     $city = $_GET['city'];
     $country = $_GET['country'];
 
-    $appointmentDate = $_GET['appointmentDate'];
-    $serviceType = $_GET['serviceType'];
-    $note = $_GET['note'];
-    $status = $_GET['status'];
-    $user_id = $_GET['user_id'];
-
     $response = file_get_contents(
-        'http://localhost:5000/appoint?' .
+        'http://localhost:5000/addCustomer?' .
             '&firstName=' . urlencode($firstName) .
             '&lastName=' . urlencode($lastName) .
             '&age=' . urlencode($age) .
@@ -35,12 +29,7 @@ if (isset($_GET['appoint'])) {
             '&district=' . urlencode($district) .
             '&post_code=' . urlencode($post_code) .
             '&city=' . urlencode($city) .
-            '&country=' . urlencode($country) .
-            '&appointmentDate=' . urlencode($appointmentDate) .
-            '&serviceType=' . urlencode($serviceType) .
-            '&note=' . urlencode($note) .
-            '&status=' . urlencode($status) .
-            '&user_id=' . urlencode($user_id)
+            '&country=' . urlencode($country)
     );
 
     header('location: ../appointment_form.php?response='.urldecode($response));

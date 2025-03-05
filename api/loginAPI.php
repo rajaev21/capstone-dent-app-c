@@ -6,30 +6,31 @@ if (isset($_POST['login'])) {
     $password = $_POST['password'];
 
     $response = file_get_contents('http://localhost:5000/login?' .
-        '&username=' . urlencode($username) .
-        '&password=' . urlencode($password));
+        '&username=' . urlencode($username));
+    $response = json_decode($response, true);
 
+    foreach ($response as $result) {
+        if ($result && isset($result['id'])) {
+            if (password_verify($password, $result['password'])) {
+                // Test session
+                // session_start();
+                // $_SESSION['confirm'] = true;
+                // $_SESSION['id'] = $result['id'];
+                // $_SESSION['username'] = $result['username'];
+                // $_SESSION['firstname'] = $result['first_name'];
+                // $_SESSION['lastname'] = $result['last_name'];
+                // $_SESSION['phoneNumber'] = $result['phone'];
+                // $_SESSION['role'] = $result['role'];
+                // header('Location:../index.php?selectedDate=' . date("d-m-Y"));
+                // exit();
 
+                $_SESSION['email'] = $response['email'];
+                $_SESSION['confirm'] = false;
 
-    $responseDecode = json_decode($response, true);
-
-    if ($responseDecode && isset($responseDecode['id'])) {
-        session_start();
-
-        $_SESSION['id'] = $responseDecode['id'];
-        $_SESSION['username'] = $responseDecode['username'];
-        $_SESSION['firstname'] = $responseDecode['firstname'];
-        $_SESSION['lastname'] = $responseDecode['lastname'];
-        $_SESSION['email'] = $responseDecode['email'];
-        $_SESSION['phoneNumber'] = $responseDecode['phoneNumber'];
-        $_SESSION['role'] = $responseDecode['role'];
-
-        header('Location:../index.php');
-        echo "<script>alert('Login successful!');</script>";
-        exit();
-    } else {
-        header('Location:../login.php');
-        echo "<script>alert('".$responseDecode."');</script>";
-        exit();
+                header('location:./sendotp.php?');
+                exit();
+            }
+        }
     }
+    header('Location:../login.php?response=Password do not match or account not found!');
 }

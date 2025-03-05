@@ -21,7 +21,7 @@
                 <form action="./api/registerAPI.php" method="POST">
                     <input class="form-control m-1" type="text" name="username" placeholder="Username">
                     <input class="form-control m-1" type="password" name="password" placeholder="Password">
-                    <input class="form-control m-1" type="password" name="confirmPassword" placeholder="Password">
+                    <input class="form-control m-1" type="password" name="confirmPassword" placeholder="Confirm Password">
 
                     <input class="form-control m-1" type="text" name="firstName" placeholder="First name">
                     <input class="form-control m-1" type="text" name="lastName" placeholder="Last name">
@@ -31,10 +31,7 @@
                         <option value="female">Female</option>
                     </select>
                     <input class="form-control m-1" type="number" name="phoneNumber" placeholder="Phone number">
-                    <select class="form-select m-1" name="role">
-                        <option value="admin">Admin</option>
-                        <option value="employee">Employee</option>
-                    </select>
+                    <input class="form-control m-1" type="password" name="adminCode" placeholder="Administration Code">
                     <div class="d-grid">
                         <button class="rounded-pill btn btn-primary m-1" type="submit" name="register">Register</button>
                     </div>

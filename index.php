@@ -1,7 +1,17 @@
 <?php
 session_start();
+date_default_timezone_set('Asia/Manila');
 if (empty($_SESSION['id'])) {
     header('location:login.php');
+}
+$dateToday = date('F d,Y');
+$timeToday = date('H:i:s');
+$month = date('m');
+$year = date('Y');
+$daysInMonth = date('t');
+
+if (isset($_GET['selectedDate'])) {
+    $_SESSION['selectedDate'] = $_GET['selectedDate'];
 }
 ?>
 <!DOCTYPE html>
@@ -10,7 +20,7 @@ if (empty($_SESSION['id'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Calendar</title>
     <!-- BS css -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <!-- BS icon -->
@@ -18,59 +28,40 @@ if (empty($_SESSION['id'])) {
 </head>
 
 <body>
-    <!-- navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand h3 fw-bold mx-5" href="index.php">Dent App</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
-                <li class="nav-item active">
-                    <a class="nav-link" href="index.php">Home <span class="sr-only">(current)</span></a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="appointment_form.php">Appointment Form</a>
-                </li>
-                <li class="nav-item">
-                    <form method="POST" action="logout.php">
-                        <button type="submit" class="btn btn-danger">Logout</button>
+    <?php include('nav.php') ?>
+    <?php include('welcome.php') ?>
+    <div class="calendar container border">
+        <div class="table">
+            <div class="row">
+                <div class="col">
+                    <h1>Today's date: <?php echo $dateToday ?></h1>
+                </div>
+                <div class="col">
+                    <form action="index.php" method="get">
+                        <input type="date" name="selectedDate" value="<?php echo date("Y-m-d", strtotime($_SESSION['selectedDate'])) ?>">
+                        <input type="submit" name="submit" value="Select Date">
                     </form>
-                </li>
-            </ul>
-        </div>
-    </nav>
-
-    <div class="card d-flex align-items-center justify-content-center m-4 shadow">
-        <div class="card-body">
-            <div class="card-title h3 fw-bold">List of appointments:</div>
-            <table class="table table-striped">
+                </div>
+            </div>
+            <table class="container-fluid table">
                 <thead>
-                    <th scope="col">ID</th>
-                    <th scope="col">Assigned By</th>
-                    <th scope="col">Customer</th>
-                    <th scope="col">Appointed Date</th>
-                    <th scope="col">Appointment</th>
-                    <th scope="col">Note</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Action</th>
+                    <tr class="text-center">
+                        <td class="col-2"></td>
+                        <td>
+                            <div class=""><?php echo date("l", strtotime($_SESSION['selectedDate'])); ?></div>
+                            <div class=""><?php echo date("d", strtotime($_SESSION['selectedDate'])); ?></div>
+                        </td>
+                    </tr>
                 </thead>
-                <tbody>
-                    <?php
-                    $result = file_get_contents("http://localhost:5000/index");
-                    $result = json_decode($result, false);
-                    foreach ($result as $row) {
-                    ?>
+                <tbody class="text-center">
+                    <?php for ($i = strtotime("09:00 AM"); $i <= strtotime("06:00 PM"); $i += 1800) { ?>
                         <tr>
-                            <td><?= $row[0] ?></td>
-                            <td class="text-capitalize"><?= $row[1] ?> <span class="text-capitalize"><?= $row[2] ?></span></td>
-                            <td class="text-capitalize"><?= $row[3] ?> <span class="text-capitalize"><?= $row[4] ?></span></td>
-                            <td><?= $row[5] ?></td>
-                            <td><?= $row[6] ?></td>
-                            <td><?= $row[7] ?></td>
-                            <td><?= $row[8] ?></td>
-                            <td>
-                                <button class="btn btn-primary">Action here</button>
+                            <td class="col-2"><?php echo date("h:i A", $i) ?></td>
+                            <td class="">
+                                <form action="appointment_form.php" method="get">
+                                    <input type="hidden" name="date" value="<?php echo date("Y-m-d", strtotime($_SESSION['selectedDate'])) ?>">
+                                    <input type="submit" class="btn btn-light w-100" value=""></input>
+                                </form>
                             </td>
                         </tr>
                     <?php } ?>
@@ -78,7 +69,6 @@ if (empty($_SESSION['id'])) {
             </table>
         </div>
     </div>
-
     <!-- BS script w/ popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 </body>
