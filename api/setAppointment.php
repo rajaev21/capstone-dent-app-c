@@ -6,16 +6,16 @@ if(isset($_POST['submit'])){
     $endAppointment = $_POST['endAppointment'];
     $note = $_POST['note'];
     $user_id = $_POST['user_id'];
-    $customerSelect = $_POST['customerSelect'];
     $serviceType = $_POST['serviceType'];
+    $date= $_POST['date'];
 
     $response = file_get_contents(
         'http://localhost:5000/setAppointment?'.
-        'startAppointment='. urlencode($startAppointment) . 
+        'date='. urlencode($date) . 
+        '&startAppointment='. urlencode($startAppointment) . 
         '&endAppointment='. urlencode($endAppointment).
         '&note='. urlencode($note).
         '&user_id='. urlencode($user_id).
-        '&customerSelect='. urlencode($customerSelect).
         '&serviceType='. urlencode($serviceType)
     );
 

@@ -1,7 +1,7 @@
 <?php
 session_start();
 date_default_timezone_set('Asia/Manila');
-if (empty($_SESSION['id'])) {
+if (empty($_SESSION['id']) && $_SESSION['confirm'] == false) {
     header('location:login.php');
 }
 $dateToday = date('F d,Y');
@@ -13,7 +13,10 @@ $daysInMonth = date('t');
 if (isset($_GET['selectedDate'])) {
     $_SESSION['selectedDate'] = $_GET['selectedDate'];
 }
+
+$getDate = date("Y-m-d", strtotime($_SESSION['selectedDate']))
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -54,14 +57,37 @@ if (isset($_GET['selectedDate'])) {
                     </tr>
                 </thead>
                 <tbody class="text-center">
-                    <?php for ($i = strtotime("09:00 AM"); $i <= strtotime("06:00 PM"); $i += 1800) { ?>
+                    <?php $response = file_get_contents('http://localhost:5000/getAppointment?date=' . $getDate);
+                    $response = json_decode($response, true);
+
+                    for ($i = strtotime("09:00"); $i <= strtotime("18:00"); $i += 1800) {
+                        $slotTime = date("H:i", $i);
+
+                        $isBooked = false;
+
+                        foreach ($response as $result) {
+                            if ($result['appointment_start'] === $slotTime) {
+                                $isBooked = true;
+                                break;
+                            }
+                        }
+                    ?>
                         <tr>
-                            <td class="col-2"><?php echo date("h:i A", $i) ?></td>
-                            <td class="">
-                                <form action="appointment_form.php" method="get">
-                                    <input type="hidden" name="date" value="<?php echo date("Y-m-d", strtotime($_SESSION['selectedDate'])) ?>">
-                                    <input type="submit" class="btn btn-light w-100" value=""></input>
-                                </form>
+                            <td class="col-2"><?php echo date("h:i A", $i); ?></td>
+                            <td>
+                                <?php if ($isBooked && $_SESSION['role'] == 'user') { ?>
+                                    <button class="btn btn-danger w-100" disabled>Booked</button>
+
+                                <?php } elseif ($isBooked && $_SESSION['role'] == 'admin') { ?>
+                                    <a class="btn btn-primary w-100" href="<?php echo './customer_details.php?aid=' . urlencode($result['aid']); ?>">Booked</a>
+
+                                <?php } else { ?>
+                                    <form action="appointment_form.php" method="get">
+                                        <input type="hidden" name="date" value="<?php echo $getDate; ?>">
+                                        <input type="hidden" name="time" value="<?php echo $slotTime; ?>">
+                                        <input type="submit" class="btn btn-light w-100" value="Available" />
+                                    </form>
+                                <?php } ?>
                             </td>
                         </tr>
                     <?php } ?>

@@ -22,7 +22,6 @@
                 <div class="col">
                     <div class="card-title h3 fw-bold">Today</div>
                 </div>
-                <div class="col d-flex justify-content-end"><a class="btn btn-primary" href="appointment_form.php">New Customer</a></div>
             </div>
             <!-- user table -->
             <div class="container">
@@ -30,35 +29,86 @@
                     <thead>
                         <th scope="col">Account ID</th>
                         <th scope="col">Username</th>
-                        <th scope="col">Name</th>
-                        <th scope="col">Email</th>
-                        <th scope="col">Gender</th>
-                        <th scope="col">Phone</th>
-                        <th scope="col"></th>
+                        <th scope="col">Action</th>
                     </thead>
                     <tbody>
                         <?php
                         $result = file_get_contents("http://localhost:5000/selectUser?&role=user");
                         $result = json_decode($result, true);
                         foreach ($result as $row) {
+                            $modalId = "userModal" . $row['user']['id'];
                         ?>
                             <tr>
-                                <th><?php echo $row['id'] ?></th>
-                                <td class="text-capitalize"><?= $row['first_name'] ?> <span class="text-capitalize"><?php echo $row['last_name'] ?></span></td>
-                                <td><?php echo $row['username'] ?></td>
-                                <td><?php echo $row['email'] ?></td>
-                                <td><?php echo $row['gender'] ?></td>
-                                <td><?php echo $row['phone'] ?></td>
+                                <th><?php echo $row['user']['id'] ?></th>
+                                <td><?php echo $row['user']['username'] ?></td>
                                 <td>
                                     <button class="btn btn-primary">Edit account</button>
-                                    <button class="btn btn-danger">Delete account</button>
+                                    <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#<?php echo $modalId ?>">
+                                        Show Details
+                                    </button>
                                 </td>
                             </tr>
+
+                            <div class="modal fade" id="<?php echo $modalId ?>" tabindex="-1" aria-labelledby="<?php echo $modalId ?>Label" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="<?php echo $modalId ?>Label">User Details</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <?php if ($row['customer_detail']) { ?>
+                                                <p><strong>Name: </strong><?php echo $row['customer_detail'][0]['firstName'] . " " . $row['customer_detail'][0]['middleName'] . " " . $row['customer_detail'][0]['lastName'] ?></p>
+                                                <p><strong>Nickname: </strong><?php echo $row['customer_detail'][0]['nickName'] ?></p>
+                                                <p><strong>Address: </strong><?php echo $row['customer_detail'][0]['address'] ?></p>
+                                                <p><strong>Contact Number: </strong><?php echo $row['customer_detail'][0]['contactNumber'] ?></p>
+                                                <p><strong>Facebook: </strong><?php echo $row['customer_detail'][0]['facebook'] ?></p>
+                                                <p><strong>Email: </strong><?php echo $row['customer_detail'][0]['email'] ?></p>
+                                                <p><strong>Birthday: </strong><?php echo $row['customer_detail'][0]['birthDay'] ?></p>
+                                                <p><strong>Nationality: </strong><?php echo $row['customer_detail'][0]['nationality'] ?></p>
+                                                <p><strong>Age: </strong><?php echo $row['customer_detail'][0]['age'] ?></p>
+                                                <p><strong>Gender: </strong><?php echo $row['customer_detail'][0]['gender'] ?></p>
+                                                <p><strong>Civil Status: </strong><?php echo $row['customer_detail'][0]['civilStatus'] ?></p>
+                                                <p><strong>Occupation: </strong><?php echo $row['customer_detail'][0]['occupation'] ?></p>
+                                                <p><strong>Employer: </strong><?php echo $row['customer_detail'][0]['employer'] ?></p>
+                                                <p><strong>Clinic: </strong><?php echo $row['customer_detail'][0]['clinic'] ?></p>
+                                                <p><strong>Previous Clinic: </strong><?php echo $row['customer_detail'][0]['prevClinic'] ?></p>
+                                                <p><strong>Emergency Person: </strong><?php echo $row['customer_detail'][0]['emergencyFirstname'] . " " . $row['customer_detail'][0]['emergencyLastname'] ?></p>
+                                                <p><strong>Relationship: </strong><?php echo $row['customer_detail'][0]['relationship'] ?></p>
+                                                <p><strong>Contact Number: </strong><?php echo $row['customer_detail'][0]['emergencyContactNumber'] ?></p>
+                                                <p><strong>Conditions: </strong></p>
+                                            <?php } ?>
+                                            <?php
+                                            if ($row['medication']) {
+                                                foreach ($row['medication'] as $condition) {
+                                            ?>
+
+                                                    <p><?php echo $condition['meds'] ?></p>
+
+                                                <?php }
+                                            } else { ?> <p>No condition listed</p> <?php } ?>
+
+                                            <p><strong>Medication:</strong></p>
+                                            <?php
+                                            if ($row['taken']) {
+                                                foreach ($row['taken'] as $medication) {
+                                            ?>
+
+                                                    <p><?php echo $medication['taken'] ?></p>
+
+                                                <?php }
+                                            } else { ?> <p>No medication listed</p> <?php } ?>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         <?php } ?>
                     </tbody>
                 </table>
             </div>
-
         </div>
     </div>
     <!-- BS script w/ popper -->

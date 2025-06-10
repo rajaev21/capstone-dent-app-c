@@ -1,10 +1,12 @@
 <?php
 session_start();
 
-if (!empty($_SESSION['id'])) {
-    header('Location:../index.php?selectedDate=' . date("d-m-Y"));
+if (isset($_SESSION['id'])) {
+    header('Location: index.php?selectedDate=' . date("d-m-Y"));
+    exit;
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

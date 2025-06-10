@@ -2,17 +2,23 @@
 
 
 if (isset($_POST['register'])) {
-    $firstName = $_POST['firstName'];
-    $lastName = $_POST['lastName'];
-    $email = $_POST['email'];
+    $username = $_POST['username'];
     $password = $_POST['password'];
     $confirmPassword = $_POST['confirmPassword'];
-    $gender = $_POST['gender'];
-    $phoneNumber = $_POST['phoneNumber'];
-    $username = $_POST['username'];
+    $email = $_POST['email'];
     $adminCode = $_POST['adminCode'];
 
 
+    $result_email = file_get_contents('http://localhost:5000/checkEmail?' .
+        '&email=' . urlencode($email));
+    $result_email = json_decode($result_email, true);
+
+    if (count($result_email) > 5){
+        header('location: ../login.php?response=Spam account detected!');
+        echo count($result_email);
+        exit;
+    }
+    
     if ($password != $confirmPassword) {
         header('location: ../login.php?response=Password does not match!');
         exit;
@@ -21,37 +27,30 @@ if (isset($_POST['register'])) {
     $response = file_get_contents('http://localhost:5000/login?' .
         '&username=' . urlencode($username));
     $response = json_decode($response, true);
-    echo var_dump($response['username']);
     if (!empty($response[0]['username'])) {
         header('location: ../login.php?response=Account Already Exist');
     } else {
+        
 
         if ($adminCode == "@dentapp") {
             $response = file_get_contents('http://localhost:5000/register?' .
-                '&firstName=' . urlencode($firstName) .
-                '&lastName=' . urlencode($lastName) .
                 '&username=' . urlencode($username) .
-                '&email=' . urlencode($email) .
                 '&password=' . urlencode($hashedPassword) .
-                '&gender=' . urlencode($gender) .
-                '&phoneNumber=' . urlencode($phoneNumber) .
+                '&email=' . urlencode($email) .
                 '&role=admin');
             $response = json_decode($response, true);
 
             header('location: ../login.php?response=Admin registration complete');
         } else {
             $response = file_get_contents('http://localhost:5000/register?' .
-            '&firstName=' . urlencode($firstName) .
-            '&lastName=' . urlencode($lastName) .
             '&username=' . urlencode($username) .
-            '&email=' . urlencode($email) .
             '&password=' . urlencode($hashedPassword) .
-            '&gender=' . urlencode($gender) .
-            '&phoneNumber=' . urlencode($phoneNumber) .
+            '&email=' . urlencode($email) .
             '&role=user');
         $response = json_decode($response, true);
+        $id = $response['inserted_id'];
 
-        header('location: ../login.php?response=User registration complete');
+        header('location: ../customer_form.php?response=User registration complete&id='.$id);
         }
     }
 }

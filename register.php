@@ -22,15 +22,7 @@
                     <input class="form-control m-1" type="text" name="username" placeholder="Username">
                     <input class="form-control m-1" type="password" name="password" placeholder="Password">
                     <input class="form-control m-1" type="password" name="confirmPassword" placeholder="Confirm Password">
-
-                    <input class="form-control m-1" type="text" name="firstName" placeholder="First name">
-                    <input class="form-control m-1" type="text" name="lastName" placeholder="Last name">
                     <input class="form-control m-1" type="email" name="email" placeholder="Email">
-                    <select class="form-select m-1" name="gender">
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                    </select>
-                    <input class="form-control m-1" type="number" name="phoneNumber" placeholder="Phone number">
                     <input class="form-control m-1" type="password" name="adminCode" placeholder="Administration Code">
                     <div class="d-grid">
                         <button class="rounded-pill btn btn-primary m-1" type="submit" name="register">Register</button>
