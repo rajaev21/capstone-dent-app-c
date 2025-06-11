@@ -9,9 +9,9 @@
     <div class="col">
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
-                <li class="nav-item active">
+                <!-- <li class="nav-item active">
                     <a class="nav-link" href="index.php">Appointment Form</a>
-                </li>
+                </li> -->
                 <?php if ($_SESSION['role'] == "admin") { ?>
                     <li class="nav-item">
                         <a class="nav-link" href="account_table.php">User table</a>

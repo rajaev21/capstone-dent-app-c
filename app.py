@@ -16,7 +16,6 @@ cursor = db.cursor(dictionary=True)
 @app.route("/getCustomerServices", methods=["GET"])
 def getCustomerServices():
     appointment_id = request.args.get("appointment_id")
-
     query = """
     SELECT 
         st.service_type AS serviceType,
@@ -25,8 +24,6 @@ def getCustomerServices():
     JOIN service_type st ON s.service_type = st.id
     WHERE s.appointment_id = %s
     """
-
-
     cursor.execute(query, (appointment_id,))
     result = cursor.fetchall()
     print(result)
@@ -316,10 +313,6 @@ def selectUser():
             "medication": medication,
             "taken": taken
             })
-
-            # if user_id == 26:
-            #     print(user_details[len(user_details) - 1])
-
             
         return user_details
 
