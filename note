@@ -5,3 +5,6 @@ check if email is legit in reg
 user should only be able to have 1 appointment until appoinment is done
 
 confirmation and decline sa admin or automatic ga book Ang patient sa available nga time?
+
+--able to remove service type in customer_details
+--i check if ang appointment is past na sa date 

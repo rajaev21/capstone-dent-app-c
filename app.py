@@ -1,5 +1,5 @@
 from flask import Flask, request
-from datetime import date
+from datetime import date, datetime, timedelta
 import mysql.connector
 import logging
 import hashlib
@@ -12,6 +12,37 @@ db = mysql.connector.connect(
 )
 cursor = db.cursor(dictionary=True)
 
+@app.route("/getHistory", methods=["GET"])
+def getHistory():
+    query = """SELECT
+        cd.firstName AS firstname,
+        cd.lastName AS lastname,
+        cd.user as user_id,
+        ab.appointment_start,
+        ab.appointment_end,
+        ab.aid,
+        ab.note,
+        ab.status,
+        ab.date
+        FROM appointment_backup ab
+        JOIN customer_detail cd ON ab.user_id = cd.user
+        """
+    cursor.execute(query)
+    result = cursor.fetchall()
+
+    if result:
+        return result
+    else:
+        return "false"
+
+@app.route("/finishAppointment", methods=["GET"])
+def finishAppointment():
+    id = request.args.get("id")
+
+    query = "UPDATE `appointment_backup` SET status = 2 WHERE aid = %s "
+    cursor.execute(query, (id,))
+    db.commit()
+    return "success"
 
 @app.route("/getCustomerServices", methods=["GET"])
 def getCustomerServices():
@@ -41,7 +72,6 @@ def additionalServices():
     db.commit()
 
     return "Success"
-
 
 @app.route("/getServices", methods=["GET"])
 def getServices():
@@ -144,6 +174,7 @@ def getAppointedCustomer():
 
     query = """
     SELECT
+    ab.status as status,
     cd.user AS user_id,
     cd.firstName AS firstname,
     cd.lastName AS lastname,
@@ -211,15 +242,11 @@ def getAppointedCustomer():
     join user u ON ab.user_id = u.id
     WHERE ab.aid = %s
     """
-
-
     
     cursor.execute(query, (aid,))
     result = cursor.fetchall()
     print(result)
     return result
-    
-
 
 
 @app.route("/getAppointment", methods=["GET"])
