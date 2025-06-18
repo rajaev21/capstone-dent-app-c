@@ -19,6 +19,7 @@ if (isset($_POST['login'])) {
                 $_SESSION['email'] = $result['email'];
                 $_SESSION['username'] = $result['username'];
                 $_SESSION['role'] = $result['role'];
+                $_SESSION['isAppointed'] = $result['isAppointed'];
 
                 $_SESSION['confirm'] = true;
                 $_SESSION['id'] = $result['id'];

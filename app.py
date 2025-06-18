@@ -12,6 +12,16 @@ db = mysql.connector.connect(
 )
 cursor = db.cursor(dictionary=True)
 
+@app.route("/isAppointed", methods=["GET"])
+def isAppointed():
+    user_id = request.args.get("user_id")
+
+    query = "SELECT * FROM appointment_backup WHERE user_id = %s AND status = 1"
+    cursor.execute(query, (user_id,))
+    result = cursor.fetchall()
+
+    return result
+
 @app.route("/getHistory", methods=["GET"])
 def getHistory():
     query = """SELECT
