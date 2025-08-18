@@ -1,11 +1,14 @@
-<?php if (empty($_SESSION)) {
+<?php 
+if (empty($_SESSION)) {
     session_start();
-} ?>
+} 
+date_default_timezone_set('Asia/Manila');
+?>
 
 <!-- navbar -->
 <nav class="navbar navbar-expand-lg navbar-light bg-light px-5 pb-3">
     <div class="col">
-        <a class="navbar-brand h3 fw-bold mx-5" href="index.php">Dent App</a>
+        <a class="navbar-brand h3 fw-bold mx-5" href="index.php?selectedDate=<?= isset($_GET['selectedDate']) ? $_GET['selectedDate'] : date('Y-m-d') ?>" >Dent App</a>
     </div>
 
     <div class="col">

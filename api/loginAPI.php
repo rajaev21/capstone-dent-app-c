@@ -1,5 +1,5 @@
 <?php
-
+date_default_timezone_set('Asia/Manila');
 if (isset($_POST['login'])) {
 
     $username = $_POST['username'];
@@ -19,12 +19,11 @@ if (isset($_POST['login'])) {
                 $_SESSION['email'] = $result['email'];
                 $_SESSION['username'] = $result['username'];
                 $_SESSION['role'] = $result['role'];
-                $_SESSION['isAppointed'] = $result['isAppointed'];
 
                 $_SESSION['confirm'] = true;
                 $_SESSION['id'] = $result['id'];
     
-                header('Location:../index.php?selectedDate=' . date("d-m-Y"));
+                header('Location:../index.php?selectedDate=' . date("Y-m-d"));
                 exit();
                 // header('location:./sendotp.php?');
                 // exit();

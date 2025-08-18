@@ -1,9 +1,17 @@
 <?php
-
-if(isset($_POST['submit'])){
-    $id = $_POST['id'];
-    $result = file_get_contents("http://localhost:5000/finishAppointment?id=" .urlencode($id));
+date_default_timezone_set('Asia/Manila');
+$id = $_POST['id'];
+if (isset($_POST['finish'])) {
+    $result = file_get_contents("http://localhost:5000/finishAppointment?id=" . urlencode($id) . "&status=3");
     $result = json_decode($result, true);
-
-    header("location: ../customer_details.php?response=&aid=".$id);
 }
+if (isset($_POST['cancel'])) {
+    $result = file_get_contents("http://localhost:5000/finishAppointment?id=" . urlencode($id) . "&status=4");
+    $result = json_decode($result, true);
+}
+if (isset($_POST['approve'])) {
+    $result = file_get_contents("http://localhost:5000/finishAppointment?id=" . urlencode($id) . "&status=2");
+    $result = json_decode($result, true);
+}
+
+header("location: ../index.php?selectedDate=" . date("d-m-Y"));

@@ -121,3 +121,42 @@ $getDate = date("Y-m-d", strtotime($_SESSION['selectedDate']))
 </body>
 
 </html>
+
+
+<!-- <?php
+        if ($isBooked && $_SESSION['role'] == 'user') {
+            if ($isCanceled) {
+        ?>
+                                            <button class="btn btn-danger w-100" disabled>Canceled</button>
+                                        <?php } else { ?>
+                                            <button class="btn btn-success w-100" disabled>Booked</button>
+                                        <?php } ?>
+
+                                    <?php } elseif ($isBooked && $_SESSION['role'] == 'admin') { ?>
+                                        <a class=" 
+                                        <?php if ($isDone) {
+                                            echo "btn btn-success w-100 disabled";
+                                        } elseif ($isCanceled || $isExpired) {
+                                            echo "btn btn-danger w-100 disabled";
+                                        } else {
+                                            echo "btn btn-primary w-100";
+                                        } ?>
+                                            " href="<?php echo './customer_details.php?aid=' . urlencode($result['aid']); ?>">
+                                            <?php if ($isDone) {
+                                                echo "Finish";
+                                            } elseif ($isCanceled) {
+                                                echo "Canceled";
+                                            } elseif ($isExpired) {
+                                                echo "Expired";
+                                            } else {
+                                                echo "Booked";
+                                            } ?> </a>
+                                    <?php } else { ?>
+                                        <form action="appointment_form.php" method="get">
+                                            <input type="hidden" name="date" value="<?php echo $getDate; ?>">
+                                            <input type="hidden" name="time" value="<?php echo $slotTime; ?>">
+                                            <input type="submit" class="btn btn-light w-100 <?php if ($_SESSION['role'] == 'admin') {
+                                                                                                echo "disabled";
+                                                                                            } ?> " value="Available" />
+                                        </form>
+                                    <?php } ?> -->

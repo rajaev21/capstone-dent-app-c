@@ -7,6 +7,11 @@ if (empty($_SESSION['id']) && $_SESSION['confirm'] == false) {
 $date = $_GET['date'];
 $timeStart = $_GET['time'];
 $timeEnd = date("H:i", strtotime("+30 minutes", strtotime($timeStart)));
+
+if(isset($_GET['user_id']) && isset($_GET['aid'])) {
+    $user_id = $_GET['user_id'];
+    $aid = $_GET['aid'];
+}
 ?>
 
 <!DOCTYPE html>

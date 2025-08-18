@@ -5,7 +5,6 @@ if (!isset($_SESSION['id'])) {
     exit();
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -29,12 +28,7 @@ if (!isset($_SESSION['id'])) {
             $response = file_get_contents('http://localhost:5000/getAppointedCustomer?aid=' . $_GET['aid']);
             $response = json_decode($response, true);
 
-            if ($response[0]['status'] == 2) {
-        ?>
-
-                <h6>Appointment Done</h6>
-
-            <?php } else { ?>
+            if (count($response) > 0) { ?>
                 <div class="card shadow-lg border-0">
                     <div class="card-header bg-primary text-white d-flex align-items-center">
                         <i class="bi bi-person-circle fs-2 me-3"></i>
@@ -370,10 +364,20 @@ if (!isset($_SESSION['id'])) {
 
                         </div>
                     </div>
-                    <form action="./api/finishAppointment.php" method="POST">
-                        <input type="hidden" name="id" value="<?php echo $_GET['aid'] ?>">
-                        <input type="submit" name="submit" value="Finish" class="btn btn-success">
-                    </form>
+                    <div class="row">
+                        <form action="./api/finishAppointment.php" method="POST" class="d-flex justify-content-between">
+                            <input type="hidden" name="id" value="<?php echo $_GET['aid'] ?>">
+
+                            <div>
+                                <input type="submit" name="finish" value="Finish Appointment" class="btn btn-success">
+                            </div>
+
+                            <div>
+                                <input type="submit" name="cancel" value="Cancel Appointment" class="btn btn-danger">
+                            </div>
+                        </form>
+                    </div>
+
                 <?php } ?>
             <?php } ?>
             <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>

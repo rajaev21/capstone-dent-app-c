@@ -12,11 +12,33 @@ db = mysql.connector.connect(
 )
 cursor = db.cursor(dictionary=True)
 
+@app.route("/changeStatus", methods=["GET"])
+def changeStatus():
+    user_id = request.args.get("user_id")
+    status = request.args.get("status")
+
+    query = "UPDATE appointment_backup SET status = %s WHERE user_id = %s"
+    cursor.execute(query, (status, user_id))
+    result = cursor.rowcount
+    db.commit()
+    return "success"
+
+@app.route("/changeStatusaid", methods=["GET"])
+def changeStatusaid():
+    aid = request.args.get("aid")
+
+    query = "UPDATE appointment_backup SET status = 6 WHERE aid = %s"
+    cursor.execute(query, (aid,))
+    result = cursor.rowcount
+    db.commit()
+
+    return "success"
+
 @app.route("/isAppointed", methods=["GET"])
 def isAppointed():
     user_id = request.args.get("user_id")
 
-    query = "SELECT * FROM appointment_backup WHERE user_id = %s AND status = 1"
+    query = "SELECT * FROM appointment_backup WHERE user_id = %s AND (status = 1 OR status = 2)"
     cursor.execute(query, (user_id,))
     result = cursor.fetchall()
 
@@ -48,9 +70,10 @@ def getHistory():
 @app.route("/finishAppointment", methods=["GET"])
 def finishAppointment():
     id = request.args.get("id")
+    status = request.args.get("status")
 
-    query = "UPDATE `appointment_backup` SET status = 2 WHERE aid = %s "
-    cursor.execute(query, (id,))
+    query = "UPDATE `appointment_backup` SET status = %s WHERE aid = %s "
+    cursor.execute(query, (status, id))
     db.commit()
     return "success"
 
@@ -67,7 +90,6 @@ def getCustomerServices():
     """
     cursor.execute(query, (appointment_id,))
     result = cursor.fetchall()
-    print(result)
     return result
 
 
@@ -255,7 +277,6 @@ def getAppointedCustomer():
     
     cursor.execute(query, (aid,))
     result = cursor.fetchall()
-    print(result)
     return result
 
 
@@ -273,16 +294,17 @@ def getAppointment():
 @app.route("/setAppointment", methods=["GET"])
 def setAppoinment():
     try:
+        
         user_id = request.args.get("user_id")
         startAppointment = request.args.get("startAppointment")
         endAppointment = request.args.get("endAppointment")
         note = request.args.get("note")
         serviceType = request.args.get("serviceType")
         date = request.args.get("date")
-        
+        status = request.args.get("status")
 
         query = "INSERT INTO appointment_backup (user_id , appointment_start, appointment_end, note, status, date) VALUES (%s,%s,%s,%s,%s,%s)"
-        cursor.execute( query, ( user_id, startAppointment,endAppointment,note,1,date),)
+        cursor.execute( query, ( user_id, startAppointment,endAppointment,note,status,date ))
         db.commit()
         inserted_id = cursor.lastrowid
 
@@ -292,7 +314,6 @@ def setAppoinment():
             query = "insert into service (user_id, appointment_id, service_type) values (%s, %s, %s)"
             cursor.execute(query, (user_id, inserted_id, serviceType))
             db.commit()
-            inserted_id = cursor.lastrowid
             
         
         hStartAppointment = hashlib.md5(startAppointment.encode()).hexdigest()
@@ -305,10 +326,13 @@ def setAppoinment():
         cursor.execute(query, (user_id,hStartAppointment,hEndAppointment,hServiceType,hNote,1,hdate))
         db.commit()
 
+        query = "SELECT * FROM appointment_backup WHERE aid = %s"
+        cursor.execute(query,(inserted_id,))
+        result = cursor.fetchall()
         
-        return f"Appointment Scheduled"
+        return result
     except Exception as e:
-        return print(e)
+        return 
 
 @app.route("/selectCustomer", methods=["GET"])
 def selectCustomer():
@@ -318,7 +342,7 @@ def selectCustomer():
         result = cursor.fetchall()
         return result
     except Exception as e:
-        print(e)
+        return e
 
 @app.route("/selectUser", methods=["GET"])
 def selectUser():
@@ -354,7 +378,6 @@ def selectUser():
         return user_details
 
     except Exception as e:
-        print(e)
         return {"error": str(e)}
 
 @app.route("/register", methods=["GET"])
@@ -384,7 +407,6 @@ def checkEmail():
     select * from user where email = %s"""    
     cursor.execute(query, (email,))
     result = cursor.fetchall()
-    print(result)
     return result
 
 @app.route("/login", methods=["GET"])
@@ -458,12 +480,10 @@ def appoint():
                 cursor.execute("INSERT INTO medication (`user`, `meds`) VALUES (%s, %s)", (id, condition))
 
         db.commit()
-        print("Details inserted")
         return "Details inserted"
 
     except Exception as e:
         db.rollback()
-        print(f"Details insert error occurred: {e}")
         return f"Details insert error occurred: {e}"
 
 

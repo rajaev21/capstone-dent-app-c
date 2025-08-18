@@ -4,6 +4,7 @@ date_default_timezone_set('Asia/Manila');
 if (empty($_SESSION['id']) && $_SESSION['confirm'] == false) {
     header('location:login.php');
 }
+$reschedule = false;
 $dateToday = date('F d,Y');
 $timeToday = date('H:i:s');
 $month = date('m');
@@ -12,6 +13,9 @@ $daysInMonth = date('t');
 
 if (isset($_GET['selectedDate'])) {
     $_SESSION['selectedDate'] = $_GET['selectedDate'];
+}
+if (isset($_GET['user_id']) && isset($_GET['aid'])) {
+    $reschedule = true;
 }
 
 $getDate = date("Y-m-d", strtotime($_SESSION['selectedDate']))
@@ -23,7 +27,7 @@ $getDate = date("Y-m-d", strtotime($_SESSION['selectedDate']))
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calendar</title>
+    <title>Dent App</title>
     <!-- BS css -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <!-- BS icon -->
@@ -31,99 +35,92 @@ $getDate = date("Y-m-d", strtotime($_SESSION['selectedDate']))
 </head>
 
 <body>
-    <?php include('nav.php') ?>
-    <?php include('welcome.php') ?>
-
     <?php
-    $response = file_get_contents('http://localhost:5000/isAppointed?user_id=' . $_SESSION['id']);
+    include('nav.php');
+    include('welcome.php');
+
+    $user_id = $_SESSION['id'];
+    $searchDate = date("Y-m-d", strtotime($dateToday));
+    $response = file_get_contents('http://localhost:5000/isAppointed?user_id=' . $user_id);
     $response = json_decode($response, true);
+    $Finished = false;
+    $Booked = false;
+    $isRescheduled = false;
+    if (isset($_GET['aid']) && isset($_GET['user_id'])) {
+        $isRescheduled = true;
+    }
 
-    if ($response) { ?>
+    if (count($response) > 0) {
+        foreach ($response as $result) {
+            $date = strtotime($result['date']);
+            $status = $result['status'];
+            $aid = $result['aid'];
 
+            if ($date < strtotime($dateToday) && ($status == 1 || $status == 2)) {
+                $status = 5;
+                $response = file_get_contents('http://localhost:5000/changeStatus?user_id=' . $user_id . "&status=" . $status);
+                $response = json_decode($response, true);
+                header("Refresh:1");
+            } elseif ($status == 3) {
+                $Finished = true;
+                $Booked = false;
+            } elseif ($status == 1 || $status == 2) {
+                $Finished = false;
+                $Booked = true;
+            } elseif ($status == 4) {
+                $Finished = false;
+                $Booked = false;
+            }
+            break;
+        }
+    ?>
         <div class="container">
-            <h4>You already have an appointment</h4>
-        </div>
-    <?php } else { ?>
+            <?php
+            if ($Finished) {
+            ?>
+                <h4> Appointment for the day is done. Wait for the next appointment. </h4>
+            <?php
+            } elseif ($isRescheduled) {
 
+                include("calendar.php");
+            } elseif ($Booked) {
+            ?>
+                <h4> You already have an appointment on <?= date("F j, Y", strtotime($response[0]["date"])) ?> at <?= date("g:i a", strtotime($response[0]["appointment_start"])) ?> </h4>
+                <form action="./api/finishAppointment.php" method="POST" class="row">
+                    <input type="hidden" name="id" value="<?= $aid ?>">
+                    <input class="btn btn-danger col" type="submit" name="cancel" value="Cancel Appointment" >
 
-        <div class="calendar container border">
-            <div class="table">
-                <div class="row">
-                    <div class="col">
-                        <h1>Today's date: <?php echo $dateToday ?></h1>
-                    </div>
-                    <div class="col">
-                        <form action="index.php" method="get">
-                            <input type="date" name="selectedDate" value="<?php echo date("Y-m-d", strtotime($_SESSION['selectedDate'])) ?>">
-                            <input type="submit" name="submit" value="Select Date">
-                        </form>
-                    </div>
-                </div>
-                <table class="container-fluid table">
-                    <thead>
-                        <tr class="text-center">
-                            <td class="col-2"></td>
-                            <td>
-                                <div class=""><?php echo date("l", strtotime($_SESSION['selectedDate'])); ?></div>
-                                <div class=""><?php echo date("d", strtotime($_SESSION['selectedDate'])); ?></div>
-                            </td>
-                        </tr>
-                    </thead>
-                    <tbody class="text-center">
-                        <?php $response = file_get_contents('http://localhost:5000/getAppointment?date=' . $getDate);
-                        $response = json_decode($response, true);
+                    <button type="button" class="btn btn-success col" data-bs-toggle="modal" data-bs-target="#reschedule" <?= isset($_SESSION['ID']) ? "disabled" : "" ?>>
+                        Reschedule Appointment
+                    </button>
+                </form>
+                <?php
+                include("reschedule.php");
+                ?>
 
-                        for ($i = strtotime("09:00"); $i <= strtotime("18:00"); $i += 1800) {
-                            $slotTime = date("H:i", $i);
-
-                            $isBooked = false;
-                            $isDone = false;
-
-                            foreach ($response as $result) {
-                                if ($result['appointment_start'] === $slotTime) {
-                                    $isBooked = true;
-                                    $isDone = ($result['status'] == 2);
-                                    break;
-                                }
-                            }
-                        ?>
-                            <tr>
-                                <td class="col-2"><?php echo date("h:i A", $i); ?></td>
-                                <td>
-                                    <?php if ($isBooked && $_SESSION['role'] == 'user') { ?>
-                                        <button class="btn btn-danger w-100" disabled>Booked</button>
-
-                                    <?php } elseif ($isBooked && $_SESSION['role'] == 'admin') { ?>
-                                        <a class=" <?php if ($isDone) {
-                                                        echo "btn btn-success w-100 disabled";
-                                                    } else {
-                                                        echo "btn btn-primary w-100";
-                                                    } ?> " href="<?php echo './customer_details.php?aid=' . urlencode($result['aid']); ?>"> <?php if ($isDone) {
-                                                                                                                                            echo "Finish";
-                                                                                                                                        } else {
-                                                                                                                                            echo "Booked";
-                                                                                                                                        } ?> </a>
-                                    <?php } else { ?>
-                                        <form action="appointment_form.php" method="get">
-                                            <input type="hidden" name="date" value="<?php echo $getDate; ?>">
-                                            <input type="hidden" name="time" value="<?php echo $slotTime; ?>">
-                                            <input type="submit" class="btn btn-light w-100 <?php if ($_SESSION['role'] == 'admin') {
-                                                                                                echo "disabled";
-                                                                                            } ?> " value="Available" />
-                                        </form>
-                                    <?php } ?>
-                                </td>
-                            </tr>
-                        <?php } ?>
-                    </tbody>
-                </table>
-            </div>
+            <?php
+            } else {
+                include("calendar.php");
+            }
+            ?>
         </div>
     <?php
+    } else {
+        include("calendar.php");
     }
     ?>
     <!-- BS script w/ popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 </body>
+<script>
+    function changeDate() {
+        const date = document.getElementById('calendar').value;
+        const params = new URLSearchParams(window.location.search);
+        params.set("selectedDate", date);
+        if (date) {
+            window.location.href = `${window.location.pathname}?${params.toString()}`;
+        }
+    }
+</script>
 
 </html>

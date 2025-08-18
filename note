@@ -1,10 +1,19 @@
-check if possible for appointment date and time already in the data
+if appointment date < current date = expired
+
+Limitations of the Study
+While the system enhances efficiency,there are some limitations:
+Focused on small-scale operations – The system is primarily intended for focused and small-scale use, specifically tailored to meet the needs of Salapantan Dental Clinic in San Miguel, Iloilo. It is not designed for multi-branch or large-scale dental clinic networks, making it ideal only for localized, individual clinic operations.
+Internet Dependency – The project relies on an internet connection to function properly. If there’s no internet, users may not be able to access the system, schedule appointments, or manage existing bookings, which can disrupt operations.
+Inventory Purchasing - The system will not cover the process of purchasing inventories.
 
 
-check if email is legit in reg
-user should only be able to have 1 appointment until appoinment is done
+Scope of the Study
 
-confirmation and decline sa admin or automatic ga book Ang patient sa available nga time?
-
---able to remove service type in customer_details
---i check if ang appointment is past na sa date 
+platform for both patients and clinic staff. Key features include:
+Appointment Scheduling – The system supports online appointment booking, allowing patients to request appointments remotely. Dentists or administrators can then review, approve, or decline these requests through the platform.
+Calendar Management – Provides an organized view of scheduled appointments and available time slots.
+User Access Control – Manages system access based on user roles, ensuring that patients, dentists, and administrators can only access features and data relevant to their permissions.
+Real-Time Appointment Scheduling – The system allows instant appointment booking, rescheduling, and cancellations, updating availability in real-time and sending automated reminders for efficiency.
+Billing - to record payment details and track transactions related to scheduled services.
+Real-Time Updates – Allows for immediate modifications to the schedule when needed, ensuring that the availability of time slots is updated instantly.
+OTP Verification - A safe login process that solely allows users with the right authorization to use the platform.
