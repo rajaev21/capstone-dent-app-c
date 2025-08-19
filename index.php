@@ -44,6 +44,7 @@ $getDate = date("Y-m-d", strtotime($_SESSION['selectedDate']))
     $response = file_get_contents('http://localhost:5000/isAppointed?user_id=' . $user_id);
     $response = json_decode($response, true);
     $Finished = false;
+    $Pending = false;
     $Booked = false;
     $isRescheduled = false;
     if (isset($_GET['aid']) && isset($_GET['user_id'])) {
@@ -64,7 +65,10 @@ $getDate = date("Y-m-d", strtotime($_SESSION['selectedDate']))
             } elseif ($status == 3) {
                 $Finished = true;
                 $Booked = false;
-            } elseif ($status == 1 || $status == 2) {
+            } elseif ($status == 1) {
+                $Pending = true;
+                $Finished = false;
+            } elseif ($status == 2) {
                 $Finished = false;
                 $Booked = true;
             } elseif ($status == 4) {
@@ -79,6 +83,21 @@ $getDate = date("Y-m-d", strtotime($_SESSION['selectedDate']))
             if ($Finished) {
             ?>
                 <h4> Appointment for the day is done. Wait for the next appointment. </h4>
+            <?php
+            } elseif ($Pending) {
+            ?>
+                <h4> Waiting for approval on <?= date("F j, Y", strtotime($response[0]["date"])) ?> at <?= date("g:i a", strtotime($response[0]["appointment_start"])) ?> </h4>
+                <form action="./api/finishAppointment.php" method="POST" class="row">
+                    <input type="hidden" name="id" value="<?= $aid ?>">
+                    <input class="btn btn-danger col" type="submit" name="cancel" value="Cancel Appointment" >
+
+                    <button type="button" class="btn btn-success col" data-bs-toggle="modal" data-bs-target="#reschedule" <?= isset($_SESSION['ID']) ? "disabled" : "" ?>>
+                        Reschedule Appointment
+                    </button>
+                </form>
+                <?php
+                include("reschedule.php");
+                ?>
             <?php
             } elseif ($isRescheduled) {
 

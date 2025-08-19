@@ -12,16 +12,29 @@ db = mysql.connector.connect(
 )
 cursor = db.cursor(dictionary=True)
 
-@app.route("/changeStatus", methods=["GET"])
-def changeStatus():
-    user_id = request.args.get("user_id")
-    status = request.args.get("status")
+@app.route("/getWaiting", methods=["GET"])
+def getWaiting():
+    date = request.args.get("date")
+    start = request.args.get("start")
+    print(date, start)
 
-    query = "UPDATE appointment_backup SET status = %s WHERE user_id = %s"
-    cursor.execute(query, (status, user_id))
-    result = cursor.rowcount
-    db.commit()
-    return "success"
+    query = "SELECT aid, user_id FROM appointment_backup WHERE date = %s AND appointment_start = %s AND status = 1"
+    cursor.execute(query, (date, start))
+
+    ids = cursor.fetchall()
+    details = []
+    for row in ids:
+        id = row['user_id']
+        aid = row['aid']
+        print(aid)
+
+        query = "SELECT user, firstName, lastName, contactNumber, age, gender, address FROM customer_detail WHERE user = %s"
+        cursor.execute(query, (id,))
+        result = cursor.fetchall()
+        if result:
+            details.append({**result[0], "aid": aid})
+
+    return details
 
 @app.route("/changeStatusaid", methods=["GET"])
 def changeStatusaid():
@@ -74,6 +87,18 @@ def finishAppointment():
 
     query = "UPDATE `appointment_backup` SET status = %s WHERE aid = %s "
     cursor.execute(query, (status, id))
+    db.commit()
+    affected = cursor.rowcount
+    return ({"affected": affected})
+
+@app.route("/cancelAppointments", methods=["GET"])
+def cancelAppointments():
+    id = request.args.get("id")
+    date = request.args.get("date")
+    start = request.args.get("start")
+
+    query = "UPDATE `appointment_backup` SET status = 4 WHERE aid != %s AND date = %s AND appointment_start= %s "
+    cursor.execute(query, (id, date, start))
     db.commit()
     return "success"
 
@@ -285,7 +310,7 @@ def getAppointment():
 
     date = request.args.get("date")
 
-    query = "select * from appointment_backup where `date` = %s"
+    query = "select * from appointment_backup where `date` = %s AND status != 4 AND status != 5"
     cursor.execute(query, (date,))
     result = cursor.fetchall()
     

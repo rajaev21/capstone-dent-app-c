@@ -45,17 +45,36 @@
                             <td><?php echo htmlspecialchars($appointment['appointment_start']); ?></td>
                             <td><?php echo htmlspecialchars($appointment['appointment_end']); ?></td>
                             <td><?php echo htmlspecialchars($appointment['note']); ?></td>
-                            <td><?php if ($appointment['status'] == 2) {
-                                    echo "Completed";
-                                } else {
+                            <td> 
+                                <?php 
+                                    if ($appointment['status'] == 1) { 
                                     echo "Pending";
-                                } ?></td>
+                                    } elseif ($appointment['status'] == 2) {
+                                        echo "Approved";
+                                    } elseif ($appointment['status'] == 3) {
+                                        echo "Done";
+                                    } elseif ($appointment['status'] == 4) {
+                                        echo "Cancelled";
+                                    } elseif ($appointment['status'] == 5) {
+                                        echo "Expired";
+                                    } elseif ($appointment['status'] == 6) {
+                                        echo "Rescheduled";
+                                    } 
+                                    
+                                ?> 
+                            </td>
                             <td><?php echo htmlspecialchars($appointment['date']); ?></td>
                             <td>
-                                <?php if ($appointment['status'] == 1) { ?>
+                                <?php if ($appointment['status'] == 1 || $appointment['status'] == 2) { ?>
                                     <button class="btn btn-primary" onclick="goTo(<?php echo htmlspecialchars($appointment['aid']); ?>)">View</button>
+                                <?php } elseif ($appointment['status'] == 3) { ?>
+                                    <button class="btn btn-success" onclick="goTo(<?php echo htmlspecialchars($appointment['aid']); ?>)" disabled>Finished</button>
+                                <?php } elseif ($appointment['status'] == 4) { ?>
+                                    <button class="btn btn-danger" onclick="goTo(<?php echo htmlspecialchars($appointment['aid']); ?>)" disabled>Cancelled</button>
+                                <?php } elseif ($appointment['status'] == 6) { ?>
+                                    <button class="btn btn-success" onclick="goTo(<?php echo htmlspecialchars($appointment['aid']); ?>)" disabled>Rescheduled</button>
                                 <?php } else { ?>
-                                    <span class="text-muted">Finished</span>
+                                    <button class="btn btn-danger" onclick="goTo(<?php echo htmlspecialchars($appointment['aid']); ?>)" disabled>Expired</button>
                                 <?php } ?>
                             </td>
                         </tr>

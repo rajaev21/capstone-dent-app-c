@@ -34,21 +34,20 @@
 
                     foreach ($response as $result) {
                         if ($result['appointment_start'] === $slotTime && $result['date'] === $getDate) {
-                            if ($result['status'] == 3) {
+                            if ($_SESSION['role'] == "admin") {
                                 $aid = $result['aid'];
                                 $user_id = $result['user_id'];
+                            }
+                            if ($result['status'] == 3) {
                                 $isDone = true;
                             } elseif ($result['status'] == 2) {
-                                $aid = $result['aid'];
-                                $user_id = $result['user_id'];
                                 $isBooked = true;
                             } elseif ($result['status'] == 1) {
-                                $aid = $result['aid'];
-                                $user_id = $result['user_id'];
+                                if ($_SESSION['role'] == "admin") {
+                                    $start = $result['appointment_start'];
+                                }
                                 $isPending = true;
                             } elseif ($result['status'] == 6) {
-                                $aid = $result['aid'];
-                                $user_id = $result['user_id'];
                                 $isRescheduled = true;
                             } else {
                                 break;
@@ -99,10 +98,9 @@
                                 <?php
                                 } elseif ($isPending) {
                                 ?>
-                                    <button type="button" class="btn btn-primary w-100 " data-bs-toggle="modal" data-bs-target="#approval">
+                                    <a type="button" class="btn btn-primary w-100 " href="<?= "./approval.php?selectedDate=" . urlencode($getDate) . "&starting=" . urlencode($start) ?>">
                                         Waiting for approval
-                                    </button>
-                                    <?php include("approval.php") ?>
+                                    </a>
                                 <?php
                                 } elseif ($isDone) {
                                 ?>
