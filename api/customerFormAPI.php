@@ -58,6 +58,5 @@ if (isset($_GET['appoint'])) {
             '&taken=' . urlencode(json_encode($taken)) .
             '&conditions=' . urlencode(json_encode($conditions))
     );
-
     header('location: ../index.php?response='.urldecode($response));
 }

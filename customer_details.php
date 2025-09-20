@@ -20,15 +20,15 @@ if (!isset($_SESSION['id'])) {
 
 <body>
     <?php
-    include('nav.php')
+    include('nav.php');
     ?>
-
     <div class="container py-5">
         <?php if (isset($_GET['aid'])) {
             $response = file_get_contents('http://localhost:5000/getAppointedCustomer?aid=' . $_GET['aid']);
             $response = json_decode($response, true);
 
-            if (count($response) > 0) { ?>
+            if (count($response) > 0) {
+        ?>
                 <div class="card shadow-lg border-0">
                     <div class="card-header bg-primary text-white d-flex align-items-center">
                         <i class="bi bi-person-circle fs-2 me-3"></i>
@@ -86,7 +86,7 @@ if (!isset($_SESSION['id'])) {
                             <div class="col-md-4">
                                 <div class="border rounded p-3 bg-white h-100">
                                     <div class="fw-bold text-secondary mb-2">Date of Birth</div>
-                                    <div><?= $response[0]['birthDay'] ?></div>
+                                    <div><?= date('d, M Y', strtotime($response[0]['birthDay'])) ?></div>
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -367,7 +367,8 @@ if (!isset($_SESSION['id'])) {
                     <div class="row">
                         <form action="./api/finishAppointment.php" method="POST" class="d-flex justify-content-between">
                             <input type="hidden" name="id" value="<?php echo $_GET['aid'] ?>">
-
+                            <input type="hidden" name="admin_id" value="<?php echo $_SESSION['id'] ?>">
+                            <input type="hidden" name="user_id" value="<?php echo $response[0]['user_id'] ?>">
                             <div>
                                 <input type="submit" name="finish" value="Finish Appointment" class="btn btn-success">
                             </div>
@@ -381,6 +382,17 @@ if (!isset($_SESSION['id'])) {
                 <?php } ?>
             <?php } ?>
             <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+            <!-- <script>
+                document.addEventListener("DOMContentLoaded", () => {
+                    function requestUpdate(aid, action) {
+                        fetch('http://localhost:5000/requestFeedback?aid=' + aid + '&action=' + action)
+                            .then(response => response.json())
+                            .catch((error) => {
+                                console.error('Error:', error);
+                            });
+                    }
+                });
+            </script> -->
 </body>
 
 </html>

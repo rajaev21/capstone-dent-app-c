@@ -19,10 +19,10 @@
             <div class="p">Sign in to continue.</div>
             <div class="m-3">
                 <form action="./api/registerAPI.php" method="POST">
-                    <input class="form-control m-1" type="text" name="username" placeholder="Username">
-                    <input class="form-control m-1" type="password" name="password" placeholder="Password">
-                    <input class="form-control m-1" type="password" name="confirmPassword" placeholder="Confirm Password">
-                    <input class="form-control m-1" type="email" name="email" placeholder="Email">
+                    <input class="form-control m-1" type="text" name="username" placeholder="Username" required>
+                    <input class="form-control m-1" type="password" name="password" placeholder="Password" required>
+                    <input class="form-control m-1" type="password" name="confirmPassword" placeholder="Confirm Password" required>
+                    <input class="form-control m-1" type="email" name="email" placeholder="Email" required>
                     <input class="form-control m-1" type="password" name="adminCode" placeholder="Administration Code">
                     <div class="d-grid">
                         <button class="rounded-pill btn btn-primary m-1" type="submit" name="register">Register</button>

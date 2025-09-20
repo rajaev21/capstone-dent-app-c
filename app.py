@@ -16,7 +16,6 @@ cursor = db.cursor(dictionary=True)
 def getWaiting():
     date = request.args.get("date")
     start = request.args.get("start")
-    print(date, start)
 
     query = "SELECT aid, user_id FROM appointment_backup WHERE date = %s AND appointment_start = %s AND status = 1"
     cursor.execute(query, (date, start))
@@ -26,14 +25,11 @@ def getWaiting():
     for row in ids:
         id = row['user_id']
         aid = row['aid']
-        print(aid)
 
         query = "SELECT user, firstName, lastName, contactNumber, age, gender, address FROM customer_detail WHERE user = %s"
         cursor.execute(query, (id,))
         result = cursor.fetchall()
-        if result:
-            details.append({**result[0], "aid": aid})
-
+        details.append({**result[0], "aid": aid})
     return details
 
 @app.route("/changeStatusaid", methods=["GET"])
@@ -47,14 +43,103 @@ def changeStatusaid():
 
     return "success"
 
+@app.route("/cancelBooked", methods=["GET"])
+def cancelBooked():
+    aid = request.args.get("aid")
+    reason = request.args.get("reason")
+    user_id = request.args.get("user_id")
+    
+    admins = cursor.execute("select * from user where role = 'admin'")
+    admins = cursor.fetchall()
+    
+    for admin in admins:
+        cursor.execute("insert into notification ( `aid`, `message`, `reason`, `sentBy`, `sentTo`) values (%s, %s, %s, %s, %s)", (aid, "Reschedule Request" , reason, user_id, admin['id']))
+        db.commit()
+        
+    return "success"
+
+@app.route("/rCancelApproval", methods=["GET"])
+def rCancelApproval():
+    aid = request.args.get("aid")
+    admin_id = request.args.get("admin_id")
+    user_id = request.args.get("user_id")
+    answer = request.args.get("answer")
+
+    if answer == "Yes":
+        query = "UPDATE appointment_backup SET status = 4 WHERE aid = %s"
+        cursor.execute(query, (aid,))
+        result = cursor.rowcount
+        
+        notificationQuery = "insert into notification ( `aid`, `message`, `sentBy`, `sentTo`) values (%s, %s, %s, %s)"
+        cursor.execute(notificationQuery, (aid, "Cancellation Request Approved" , admin_id, user_id))
+        db.commit()
+    else:
+        query = "UPDATE appointment_backup SET status = 2 WHERE aid = %s"
+        cursor.execute(query, (aid,))
+        result = cursor.rowcount
+        
+        notificationQuery = "insert into notification ( `aid`, `message`, `sentBy`, `sentTo`) values (%s, %s, %s, %s)"
+        cursor.execute(notificationQuery, (aid, "Cancellation Request Denied" , admin_id, user_id))
+        db.commit()
+
+    return "success"
+
+@app.route("/changeStatus", methods=["GET"])
+def changeStatus():
+    aid = request.args.get("aid")
+    query = "UPDATE appointment_backup SET status = 5 WHERE aid = %s"
+    cursor.execute(query, (aid,))
+    result = cursor.rowcount
+    db.commit()
+
+    return "success"
+
 @app.route("/isAppointed", methods=["GET"])
 def isAppointed():
     user_id = request.args.get("user_id")
 
-    query = "SELECT * FROM appointment_backup WHERE user_id = %s AND (status = 1 OR status = 2)"
+    query = "SELECT * FROM appointment_backup WHERE user_id = %s AND (status = 1 OR status = 2 OR status = 8)"
     cursor.execute(query, (user_id,))
     result = cursor.fetchall()
 
+    return result
+
+@app.route("/getCustomerDetails", methods=["GET"])
+def getCustomerDetails():
+    user_id = request.args.get("id")
+    query = "select isValidated from customer_detail where user = %s"
+    cursor.execute(query, (user_id,))
+    result = cursor.fetchall()
+    return result
+
+@app.route("/getCustomerProfile", methods=["GET"])
+def getCustomerProfile():
+    user_id = request.args.get("id")
+    query = """
+        SELECT 
+        cd.*, 
+        u.username, 
+        GROUP_CONCAT(DISTINCT m.meds) AS medications,
+        GROUP_CONCAT(DISTINCT t.taken) AS taken_list
+
+        FROM customer_detail cd
+        INNER JOIN user u ON u.id = cd.user
+        LEFT JOIN medication m ON m.user = cd.user
+        LEFT JOIN taken t ON t.user = cd.user
+        WHERE cd.user = %s
+        GROUP BY cd.user;
+        """
+    cursor.execute(query, (user_id,))
+    result = cursor.fetchall()
+    return result
+
+@app.route("/getNotification", methods=["GET"])
+def getNotification():
+    user_id = request.args.get("user_id")
+
+    query = "SELECT *, n.reason as reason FROM notification n join appointment_backup ab on ab.aid = n.aid WHERE sentTo = %s ORDER BY n.created_at DESC limit 7"
+    cursor.execute(query, (user_id,))
+    result = cursor.fetchall()
     return result
 
 @app.route("/getHistory", methods=["GET"])
@@ -84,21 +169,63 @@ def getHistory():
 def finishAppointment():
     id = request.args.get("id")
     status = request.args.get("status")
+    admin_id = request.args.get("admin_id")
+    user_id = request.args.get("user_id")
 
     query = "UPDATE `appointment_backup` SET status = %s WHERE aid = %s "
     cursor.execute(query, (status, id))
     db.commit()
     affected = cursor.rowcount
-    return ({"affected": affected})
+
+    if(status == "4"):
+        message = "Appointment Cancelled"
+
+    if(status == "3"):
+        message = "Appointment Done"
+
+    if(status == "2"):
+        message = "Appointment Approved"
+
+    newQuery = """
+    INSERT INTO `notification` (`message`, `sentBy`, `sentTo`) 
+    VALUES (%s, %s, %s)
+    """ 
+    cursor.execute(newQuery, (message, admin_id, user_id))
+    db.commit()
+    notif = cursor.lastrowid
+    return ({"notify" : notif})
 
 @app.route("/cancelAppointments", methods=["GET"])
 def cancelAppointments():
-    id = request.args.get("id")
     date = request.args.get("date")
     start = request.args.get("start")
+    admin_id = request.args.get("admin_id")
 
-    query = "UPDATE `appointment_backup` SET status = 4 WHERE aid != %s AND date = %s AND appointment_start= %s "
-    cursor.execute(query, (id, date, start))
+    selectQuery = """
+        SELECT aid, user_id 
+        FROM appointment_backup 
+        WHERE status = 1 AND date = %s AND appointment_start = %s
+    """
+    cursor.execute(selectQuery, (date, start))
+    result = cursor.fetchall()
+
+    for row in result:
+        user_id = row['user_id']
+        aid = row['aid']
+
+        updateQuery = """
+            UPDATE appointment_backup 
+            SET status = 4 
+            WHERE aid = %s AND date = %s AND appointment_start = %s
+        """
+        cursor.execute(updateQuery, (aid, date, start))
+
+        newQuery = """
+            INSERT INTO `notification` (`aid` ,`message`, `sentBy`, `sentTo`) 
+            VALUES (%s, %s, %s, %s)
+        """
+        cursor.execute(newQuery, (aid, "Another user has been appointed", admin_id, user_id))
+
     db.commit()
     return "success"
 
@@ -231,6 +358,7 @@ def getAppointedCustomer():
 
     query = """
     SELECT
+    ab.aid as aid,
     ab.status as status,
     cd.user AS user_id,
     cd.firstName AS firstname,
@@ -239,7 +367,7 @@ def getAppointedCustomer():
     cd.address AS address,
     cd.contactNumber AS contactNumber,
     cd.facebook AS facebook,
-    cd.birthDay AS birthDay,
+    DATE(cd.birthDay) AS birthDay,
     cd.nationality AS nationality,
     cd.age AS age,
     cd.gender AS gender,
@@ -256,8 +384,8 @@ def getAppointedCustomer():
     u.email AS email,
     st.service_type as serviceType,
     st.price as servicePrice,
+    n.reason as reason,
     
-
     tc.tooth1 AS tooth1,
     tc.tooth2 AS tooth2,
     tc.tooth3 AS tooth3,
@@ -297,6 +425,7 @@ def getAppointedCustomer():
     join service s on ab.user_id = s.user_id
     join service_type st on s.service_type = st.id
     join user u ON ab.user_id = u.id
+    join notification n ON n.aid = ab.aid
     WHERE ab.aid = %s
     """
     
@@ -304,6 +433,59 @@ def getAppointedCustomer():
     result = cursor.fetchall()
     return result
 
+
+@app.route("/notificationRead", methods=["GET"])
+def notificationRead():
+    user_id = request.args.get("user_id")
+    query = "update notification set isRead = 1 where sentTo = %s"
+    cursor.execute(query, (user_id,))
+    affected = cursor.rowcount
+    db.commit()
+    return {"affected": affected}
+
+@app.route("/cancelSingleAppointment", methods=["GET"])
+def cancelSingleAppointment():
+
+    aid = request.args.get("aid")
+    user_id = request.args.get("user_id")
+    admin_id = request.args.get("admin_id")
+    reason = request.args.get("reason")
+
+    query = "update appointment_backup set status = 4 where aid = %s"
+    cursor.execute(query, (aid,))
+    affected = cursor.rowcount
+    
+    notificationQuery = "insert into notification ( `aid`, `message`, `reason`, `sentBy`, `sentTo`) values (%s, %s, %s, %s, %s)"
+    cursor.execute(notificationQuery, (aid, "Reschedule Cancelled" , reason, admin_id, user_id))
+    db.commit()
+    
+    lastAppointment = "select * from appointment_backup where user_id = %s and status = 6 order by aid desc limit 1"
+    cursor.execute(lastAppointment, (user_id,))
+    lastAppointment = cursor.fetchall()
+    
+    if lastAppointment:
+        lastAppointment = lastAppointment[0]
+        lastAid = lastAppointment['aid']
+        lastDate = lastAppointment['date']
+        lastStart = lastAppointment['appointment_start']
+        
+        updateQuery = "update appointment_backup set status = 1 and reason = `""` where aid = %s and date = %s and appointment_start = %s"
+        cursor.execute(updateQuery, (lastAid, lastDate, lastStart))
+        db.commit()
+
+    return {"affected": affected}
+
+@app.route("/requestFeedback", methods=["GET"])
+def requestFeedback():
+
+    aid = request.args.get("aid")
+    action = request.args.get("action")
+    
+    query = "select * from appointment_backup where `date` = %s AND status != 4 AND status != 5"
+    cursor.execute(query, (date,))
+    result = cursor.fetchall()
+    
+    return result
 
 @app.route("/getAppointment", methods=["GET"])
 def getAppointment():
@@ -317,7 +499,7 @@ def getAppointment():
     return result
 
 @app.route("/setAppointment", methods=["GET"])
-def setAppoinment():
+def setAppointment():
     try:
         
         user_id = request.args.get("user_id")
@@ -327,13 +509,25 @@ def setAppoinment():
         serviceType = request.args.get("serviceType")
         date = request.args.get("date")
         status = request.args.get("status")
+        reason = request.args.get("reason") or ""
+        aid = request.args.get("aid") or ""
+        
+        
+        if aid and reason:
+            cursor.execute( "update appointment_backup set status = 6 where aid = %s", ( aid, ))
+            db.commit()
+            
+            admins = cursor.execute("select * from user where role = 'admin'")
+            admins = cursor.fetchall()
+
+            for admin in admins:
+                cursor.execute("insert into notification ( `aid`, `message`, `reason`, `sentBy`, `sentTo`) values (%s, %s, %s, %s, %s)", (aid, "Reschedule Request" , reason, user_id, admin['id']))
+                db.commit()
 
         query = "INSERT INTO appointment_backup (user_id , appointment_start, appointment_end, note, status, date) VALUES (%s,%s,%s,%s,%s,%s)"
         cursor.execute( query, ( user_id, startAppointment,endAppointment,note,status,date ))
-        db.commit()
         inserted_id = cursor.lastrowid
-
-
+        db.commit()
 
         if inserted_id:
             query = "insert into service (user_id, appointment_id, service_type) values (%s, %s, %s)"
@@ -357,7 +551,7 @@ def setAppoinment():
         
         return result
     except Exception as e:
-        return 
+        return {"error": str(e)}
 
 @app.route("/selectCustomer", methods=["GET"])
 def selectCustomer():
@@ -381,14 +575,11 @@ def selectUser():
         for user in users:
             user_id = user['id']
             
-            
             cursor.execute("SELECT * FROM customer_detail WHERE `user` = %s", (user_id,))
             customer_detail = cursor.fetchall()
             
-            
             cursor.execute("SELECT * FROM medication WHERE `user` = %s", (user_id,))
             medication = cursor.fetchall()
-            
             
             cursor.execute("SELECT * FROM taken WHERE `user` = %s", (user_id,))
             taken = cursor.fetchall()
@@ -413,16 +604,16 @@ def register():
     email = request.args.get("email")
     role = request.args.get("role")
 
-    query = "INSERT INTO user (username, password , role, email) VALUES (%s, %s, %s , %s)"
+    query = "INSERT INTO user (username, password , role, email) VALUES (%s, %s, %s ,%s)"
     cursor.execute(query, (username, password, role, email))
-    db.commit()
     inserted_id = cursor.lastrowid
 
     tooth_condition_query = "INSERT INTO tooth_conditions (user_id) VALUES (%s)"
     cursor.execute(tooth_condition_query, (inserted_id,))
-    db.commit()
-    tooth_id = cursor.lastrowid
 
+    customer_query = "INSERT INTO customer_detail (user) VALUES (%s)"
+    cursor.execute(customer_query, (inserted_id,))
+    db.commit()
     return {"message": "Registration complete", "inserted_id": inserted_id}
 
 @app.route("/checkEmail", methods=["GET"])
@@ -451,7 +642,7 @@ def login():
 
 
 @app.route("/addCustomer", methods=["GET"])
-def appoint():
+def addCustomer():
 
     id = request.args.get("id")
     firstName = request.args.get("firstName")
@@ -461,7 +652,6 @@ def appoint():
     address = request.args.get("address")
     contactNumber = request.args.get("contactNumber")
     facebook = request.args.get("facebook")
-    email = request.args.get("email")
     birthDay = request.args.get("birthDay")
     nationality = request.args.get("nationality")
     age = request.args.get("age")
@@ -484,19 +674,40 @@ def appoint():
 
     try:
         query = """
-            INSERT INTO customer_detail (
-                `user`, `firstName`, `middleName`, `lastName`, `nickName`, `address`,
-                `contactNumber`, `facebook`, `email`, `birthDay`, `nationality`, `age`,
-                `gender`, `civilStatus`, `occupation`, `employer`, `clinic`, `prevClinic`,
-                `emergencyFirstname`, `emergencyLastname`, `relationship`, `emergencyContactNumber`
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """
+            UPDATE customer_detail
+            SET
+            firstName = %s,
+            middleName = %s,
+            lastName = %s,
+            nickName = %s,
+            address = %s,
+            contactNumber = %s,
+            facebook = %s,
+            birthDay = %s,
+            nationality = %s,
+            age = %s,
+            gender = %s,
+            civilStatus = %s,
+            occupation = %s,
+            employer = %s,
+            clinic = %s,
+            prevClinic = %s,
+            emergencyFirstname = %s,
+            emergencyLastname = %s,
+            relationship = %s,
+            emergencyContactNumber = %s,
+            isValidated = %s
+            WHERE `user` = %s
+            """
         cursor.execute(query, (
-            id, firstName, middleName, lastName, nickName, address,
-            contactNumber, facebook, email, birthDay, nationality, age,
-            gender, civilStatus, occupation, employer, clinic, prevClinic,
-            emergencyFirstname, emergencyLastname, relationship, emergencyContactNumber
+        firstName, middleName, lastName, nickName, address,
+        contactNumber, facebook, birthDay, nationality, age,
+        gender, civilStatus, occupation, employer, clinic, prevClinic,
+        emergencyFirstname, emergencyLastname, relationship, emergencyContactNumber,
+        1, id  
         ))
+        cursor.execute("DELETE FROM taken WHERE `user` = %s", (id,))
+        cursor.execute("DELETE FROM medication  WHERE `user` = %s", (id,))
         if taken:
             for item in taken:
                 cursor.execute("INSERT INTO taken (`user`, `taken`) VALUES (%s, %s)", (id, item))
@@ -505,6 +716,7 @@ def appoint():
                 cursor.execute("INSERT INTO medication (`user`, `meds`) VALUES (%s, %s)", (id, condition))
 
         db.commit()
+        affected = cursor.rowcount
         return "Details inserted"
 
     except Exception as e:
