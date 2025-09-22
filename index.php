@@ -57,6 +57,7 @@ $getDate = date("Y-m-d", strtotime($_SESSION['selectedDate']))
 	$Pending = false;
 	$Booked = false;
 	$isRescheduled = false;
+	$rCancel = false;
 	if (isset($_GET['aid']) && isset($_GET['user_id'])) {
 		$isRescheduled = true;
 	}
@@ -142,7 +143,7 @@ $getDate = date("Y-m-d", strtotime($_SESSION['selectedDate']))
 		include("calendar.php");
 	}
 	?>
-	<!-- BS script w/ popper -->
+	
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 </body>
 <script>

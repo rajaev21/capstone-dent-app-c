@@ -53,8 +53,11 @@ def cancelBooked():
     admins = cursor.fetchall()
     
     for admin in admins:
-        cursor.execute("insert into notification ( `aid`, `message`, `reason`, `sentBy`, `sentTo`) values (%s, %s, %s, %s, %s)", (aid, "Reschedule Request" , reason, user_id, admin['id']))
+        cursor.execute("insert into notification ( `aid`, `message`, `reason`, `sentBy`, `sentTo`) values (%s, %s, %s, %s, %s)", (aid, "Cancel Request" , reason, user_id, admin['id']))
         db.commit()
+    
+    cancelQuery = "UPDATE appointment_backup SET status = 8 WHERE aid = %s"
+    cursor.execute(cancelQuery, (aid,)) 
         
     return "success"
 
@@ -704,7 +707,7 @@ def addCustomer():
         contactNumber, facebook, birthDay, nationality, age,
         gender, civilStatus, occupation, employer, clinic, prevClinic,
         emergencyFirstname, emergencyLastname, relationship, emergencyContactNumber,
-        1, id  
+        0, id  
         ))
         cursor.execute("DELETE FROM taken WHERE `user` = %s", (id,))
         cursor.execute("DELETE FROM medication  WHERE `user` = %s", (id,))
