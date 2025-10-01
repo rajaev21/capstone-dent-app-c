@@ -33,6 +33,8 @@
           $isPending = false;
           $rCancel = false;
           $rReschedule = false;
+          $fromSched = false;
+          $done_rescheduled = false;
 
           foreach ($response as $result) {
             if ($result['appointment_start'] === $slotTime && $result['date'] === $getDate) {
@@ -45,8 +47,12 @@
               } elseif ($result['status'] == 2) {
                 $isBooked = true;
               } elseif ($result['status'] == 1) {
-                if ($_SESSION['role'] == "admin") {
-                  $start = $result['appointment_start'];
+                if (isset($_GET['user_id']) && isset($_GET['aid'])) {
+                  $user_id = $_GET['user_id'];
+                  $aid = $_GET['aid'];
+                }
+                if ($user_id == $result['user_id'] && $aid == $result['aid']) {
+                  $fromSched = true;
                 }
                 $isPending = true;
               } elseif ($result['status'] == 6) {
@@ -55,6 +61,8 @@
                 $rCancel = true;
               } elseif ($result['status'] == 9) {
                 $rReschedule = true;
+              } elseif ($result['status'] == 10) {
+                $done_rescheduled = true;
               } else {
                 break;
               }
@@ -81,18 +89,19 @@
                   <?php
                   } elseif ($isExpired) {
                   ?>
-                    <input type="submit" class="btn btn-danger w-100" value="Expired" disabled />
+                    <input type="submit" class="btn btn-danger w-100" value="Closed" disabled />
+                  <?php
+                  } elseif ($done_rescheduled) {
+                  ?>
+                    <a class="btn btn-success w-100 disabled" href="#"> Done and Rescheduled </a>
                     <?php
                   } else {
                     if (isset($_GET['user_id']) && isset($_GET['aid'])) {
-                      $user_id = $_GET['user_id'];
-                      $aid = $_GET['aid'];
                     ?>
                       <input type="hidden" name="user_id" value="<?= $user_id ?>">
-                      <input type="hidden" name="aid" value="<?= $aid ?>"> <?php
-                                                                          }
-                                                                            ?>
-                    <input type="submit" class="btn btn-primary w-100" value="Available" />
+                      <input type="hidden" name="aid" value="<?= $aid ?>">
+                    <?php } ?>
+                    <input type="submit" class="btn btn-primary w-100" value="Available" <?= $fromSched ? 'disabled' : ''; ?> />
                   <?php
                   }
                   ?>
@@ -103,9 +112,9 @@
                 ?>
                   <a class="btn btn-primary w-100" href="<?php echo './customer_details.php?aid=' . urlencode($aid); ?>"> Booked </a>
                 <?php
-                } elseif ($isPending) {
+                } elseif ($isPending || $isRescheduled) {
                 ?>
-                  <a type="button" class="btn btn-primary w-100 " href="<?= "./approval.php?selectedDate=" . urlencode($getDate) . "&starting=" . urlencode($start) ?>">
+                  <a type="button" class="btn btn-primary w-100 " href="<?= "./approval.php?selectedDate=" . urlencode($getDate) . "&starting=" . urlencode($slotTime) ?>">
                     Waiting for approval
                   </a>
                 <?php
@@ -119,12 +128,6 @@
                   $isRescheduled = true;
                   ?>
                 <?php
-                } elseif ($isRescheduled) {
-                ?>
-                  <button type="button" class="btn btn-success w-100 " data-bs-toggle="modal" data-bs-target="#reschedule" disabled>
-                    Rescheduled
-                  </button>
-                <?php
                 } elseif ($rCancel) {
                 ?>
                   <button type="button" class="btn btn-danger w-100 " data-bs-toggle="modal" data-bs-target="#rCancel">
@@ -132,16 +135,13 @@
                   </button>
                 <?php
                   include("rCancel.php");
-                } elseif ($rReschedule) {
-                ?>
-                  <button type="button" class="btn btn-success w-100 " data-bs-toggle="modal" data-bs-target="#rReschedule">
-                    Request for Reschedule
-                  </button>
-                <?php
-                  include("rReschedule.php");
                 } elseif ($isExpired) {
                 ?>
-                  <a class="btn btn-danger w-100 disabled" href="#"> Expired </a>
+                  <a class="btn btn-danger w-100 disabled" href="#"> Closed </a>
+                <?php
+                } elseif ($done_rescheduled) {
+                ?>
+                  <a class="btn btn-success w-100 disabled" href="#"> Done and Rescheduled </a>
                 <?php
                 } else {
                 ?>
@@ -174,3 +174,18 @@
     </table>
   </div>
 </div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+
+  const date = params.get("selectedDate");
+
+
+  async function getAppointment(date) {
+
+    const res = fetch(`http://localhost:5000/getAppointment?date=${date}`)
+    const data = await res.json();
+
+    console.log(data)
+  }
+</script>

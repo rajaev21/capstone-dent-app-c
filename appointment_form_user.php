@@ -17,13 +17,7 @@
       <div class="p-1">
         <label for="serviceType">Type</label>
         <select name="serviceType" id="serviceType">
-          <?php
-          $response = file_get_contents('http://localhost:5000/getServices?');
-          $response = json_decode($response, true);
-          foreach ($response as $result) {
-            echo '<option value="' . $result['id'] . '">' . $result['service_type'] . '</option>';
-          }
-          ?>
+
         </select>
       </div>
       <div class="p-1">
@@ -41,8 +35,27 @@
 
       <div class="p-1">
         <input type="hidden" name="user_id" value="<?= $_SESSION['id'] ?>">
-        <input type="hidden" name="status" value="1">
         <input type="submit" value="Submit" name="submit" class="btn btn-primary">
       </div>
     </div>
 </form>
+
+<script>
+  async function getServices() {
+    const res = await fetch('http://localhost:5000/getServices');
+    const data = await res.json();
+
+    const select = document.getElementById("serviceType");
+    select.innerHTML = ""; // clear old options if needed
+
+    data.forEach(element => {
+      const option = document.createElement("option");
+      option.value = element.id;
+      option.textContent = element.service_type;
+      select.appendChild(option);
+    });
+  }
+
+
+  getServices()
+</script>

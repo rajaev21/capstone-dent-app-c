@@ -36,16 +36,6 @@ $getDate = date("Y-m-d", strtotime($_SESSION['selectedDate']))
 
 <body>
 	<?php
-	$response = file_get_contents('http://localhost:5000/getCustomerDetails?id=' . $_SESSION['id']);
-	$response = json_decode($response, true);
-	if (count($response) > 0) {
-		foreach ($response as $row) {
-			if ($row['isValidated'] == 0) {
-				header('location:./customer_form.php?id=' . $_SESSION['id']);
-			}
-		}
-	}
-
 	include('nav.php');
 	include('welcome.php');
 
@@ -58,34 +48,31 @@ $getDate = date("Y-m-d", strtotime($_SESSION['selectedDate']))
 	$Booked = false;
 	$isRescheduled = false;
 	$rCancel = false;
+	$rReschedule = false;
 	if (isset($_GET['aid']) && isset($_GET['user_id'])) {
 		$isRescheduled = true;
 	}
 	if (count($response) > 0) {
 		foreach ($response as $result) {
-			$date = strtotime($result['date']);
+			$date = $result['date'];
+			$appointment_start = $result['appointment_start'];
 			$status = $result['status'];
 			$aid = $result['aid'];
 
 			if ($date < strtotime($dateToday) && ($status == 1 || $status == 2)) {
 				$response = file_get_contents('http://localhost:5000/changeStatus?aid=' . $aid);
 				$response = json_decode($response, true);
-			} elseif ($status == 3) {
-				$Finished = true;
-				$Booked = false;
 			} elseif ($status == 1) {
 				$Pending = true;
 				$Finished = false;
 			} elseif ($status == 2) {
 				$Finished = false;
 				$Booked = true;
-			} elseif ($status == 4) {
-				$Finished = false;
-				$Booked = false;
 			} elseif ($status == 8) {
 				$rCancel = true;
+			} elseif ($status == 6) {
+				$rReschedule = true;
 			}
-			break;
 		}
 	?>
 		<div class="container">
@@ -98,12 +85,12 @@ $getDate = date("Y-m-d", strtotime($_SESSION['selectedDate']))
 				include("calendar.php");
 			} elseif ($Pending) {
 			?>
-				<h4> Waiting for approval on <?= date("F j, Y", strtotime($response[0]["date"])) ?> at <?= date("g:i a", strtotime($response[0]["appointment_start"])) ?> </h4>
+				<h4> Waiting for approval on <?= date("F d, Y", strtotime($date)) ?> at <?= date("H:i A", strtotime($appointment_start)) ?> </h4>
 				<form action="./api/finishAppointment.php" method="POST" class="row">
 					<input type="hidden" name="id" value="<?= $aid ?>">
 					<input class="btn btn-danger col" type="submit" name="cancel" value="Cancel Appointment">
 
-					<button type="button" class="btn btn-success col" data-bs-toggle="modal" data-bs-target="#reschedule" <?= isset($_SESSION['ID']) ? "disabled" : "" ?>>
+					<button type="button" class="btn btn-success col" data-bs-toggle="modal" data-bs-target="#reschedule">
 						Reschedule Appointment
 					</button>
 				</form>
@@ -113,16 +100,20 @@ $getDate = date("Y-m-d", strtotime($_SESSION['selectedDate']))
 			<?php
 			} elseif ($rCancel) {
 			?>
-				<h4> Waiting for cancellation approval on <?= date("F j, Y", strtotime($response[0]["date"])) ?> at <?= date("g:i a", strtotime($response[0]["appointment_start"])) ?> </h4>
+				<h4> Waiting for cancellation approval on <?= date("F d, Y", strtotime($date)) ?> at <?= date("H:i A", strtotime($appointment_start)) ?> </h4>
+			<?php
+			} elseif ($rReschedule) {
+			?>
+				<h4> Waiting for reschedule approval on <?= date("F d, Y", strtotime($date)) ?> at <?= date("H:i A", strtotime($appointment_start)) ?> </h4>
 			<?php
 			} elseif ($Booked) {
 			?>
-				<h4> You already have an appointment on <?= date("F j, Y", strtotime($response[0]["date"])) ?> at <?= date("g:i a", strtotime($response[0]["appointment_start"])) ?> </h4>
+				<h4> You already have an appointment on <?= date("F d, Y", strtotime($date)) ?> at <?= date("H:i A", strtotime($appointment_start)) ?> </h4>
 				<div class="row">
-					<button type="button" class="btn btn-danger col" data-bs-toggle="modal" data-bs-target="#cancelBooked" <?= isset($_SESSION['ID']) ? "disabled" : "" ?>>
+					<button type="button" class="btn btn-danger col" data-bs-toggle="modal" data-bs-target="#cancelBooked">
 						Cancel Appointment
 					</button>
-					<button type="button" class="btn btn-success col" data-bs-toggle="modal" data-bs-target="#reschedule" <?= isset($_SESSION['ID']) ? "disabled" : "" ?>>
+					<button type="button" class="btn btn-success col" data-bs-toggle="modal" data-bs-target="#reschedule">
 						Reschedule Appointment
 					</button>
 				</div>
@@ -143,10 +134,27 @@ $getDate = date("Y-m-d", strtotime($_SESSION['selectedDate']))
 		include("calendar.php");
 	}
 	?>
-	
+
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 </body>
 <script>
+	async function getCustomerDetails() {
+		const userId = <?= json_encode($_SESSION['id']); ?>;
+
+		const res = await fetch(`http://localhost:5000/getCustomerDetails?id=${userId}`);
+		const data = await res.json();
+
+		console.log(data);
+
+		if (data.length > 0) {
+			const customer = data[0];
+			if (customer.isValidated == 0) {
+				window.location.href = `./customer_form.php?id=${userId}`;
+			}
+		}
+	}
+
+
 	function changeDate() {
 		const date = document.getElementById('calendar').value;
 		const params = new URLSearchParams(window.location.search);
@@ -155,6 +163,8 @@ $getDate = date("Y-m-d", strtotime($_SESSION['selectedDate']))
 			window.location.href = `${window.location.pathname}?${params.toString()}`;
 		}
 	}
+
+	getCustomerDetails();
 </script>
 
 </html>

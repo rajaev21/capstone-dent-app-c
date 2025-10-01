@@ -31,7 +31,6 @@
                 <textarea class="form-control" name="note" id="note" row="4"></textarea>
             </div>
             <div class="p-1">
-                <input type="hidden" name="status" value="2">
                 <input type="hidden" name="user_id" value="<?= $user_id ?>">
                 <input type="hidden" name="aid" value="<?= $aid ?>">
                 <input type="submit" value="Submit" name="submit" class="btn btn-primary">

@@ -11,7 +11,8 @@
           <div class="p-1">
             <label class="form-label d-flex justify-content-start" for="reason">Reason for cancellation:</label>
             <textarea class="form-control" name="reason" id="reason" row="4" required></textarea>
-            <input type="hidden" name="id" value="<?= $aid ?>">
+            <input type="hidden" name="aid" value="<?= $aid ?>">
+            <input type="hidden" name="user_id" value="<?= $user_id ?>">
           </div>
         </div>
         <div class="modal-footer">
