@@ -55,7 +55,7 @@
         data.forEach(customer => {
           const row = `
         <tr>
-          <td class="text-capitalize">${customer.name, customer.aid}</td>
+          <td class="text-capitalize">${customer.name}</td>
           <td>${customer.age}</td>
           <td>${customer.gender}</td>
           <td>${customer.number}</td>

@@ -25,7 +25,7 @@ def getWaiting():
     date = request.args.get("date")
     start = request.args.get("start")
 
-    query = """SELECT 
+    query = """SELECT distinct
             ab.aid as aid,
             ab.user_id as user_id,
             concat(cd.firstName, ' ' , cd.lastName) as name,
@@ -275,6 +275,11 @@ def finishAppointment():
 
     if status == "2":
         message = "Appointment Approved"
+        cursor.execute(
+            "update appointment_backup set status = 10 where user_id = %s and status = 3",
+            (user_id,),
+        )
+        conn.commit()
 
     newQuery = """
     INSERT INTO `notification` (`aid`, `message`, `reason`, `sentBy`, `sentTo`) 
@@ -315,7 +320,7 @@ def cancelAppointments():
             WHERE aid = %s AND date = %s AND appointment_start = %s
         """
         cursor.execute(updateQuery, (aid, date, start))
-
+        conn.commit()
         newQuery = """
             INSERT INTO `notification` (`aid` ,`message`, `sentBy`, `sentTo`) 
             VALUES (%s, %s, %s, %s)
@@ -323,8 +328,7 @@ def cancelAppointments():
         cursor.execute(
             newQuery, (aid, "Another user has been appointed", admin_id, user_id)
         )
-
-    conn.commit()
+        conn.commit()
 
     cursor.close()
     conn.close()
@@ -339,13 +343,13 @@ def getCustomerServices():
 
     appointment_id = request.args.get("appointment_id")
     query = """
-    SELECT 
+        SELECT DISTINCT
         st.service_type AS serviceType,
         st.price AS servicePrice
-    FROM service s
-    JOIN service_type st ON s.service_type = st.id
-    WHERE s.appointment_id = %s
-    """
+        FROM service s
+        JOIN service_type st ON s.service_type = st.id
+        WHERE s.appointment_id = %s
+        """
     cursor.execute(query, (appointment_id,))
     result = cursor.fetchall()
 
@@ -793,18 +797,28 @@ def setAppointment():
 
     else:
         if aid and user_id:
-            cursor.execute("update appointment_backup set status = 10 where aid = %s", (aid,))
+            cursor.execute(
+                "update appointment_backup set status = 10 where aid = %s", (aid,)
+            )
             status = 2
         else:
             status = 1
 
         query = "INSERT INTO appointment_backup (user_id , appointment_start, appointment_end, note, status, date) VALUES (%s,%s,%s,%s,%s,%s)"
-        cursor.execute(query, (user_id, startAppointment, endAppointment, note, status, date))
+        cursor.execute(
+            query, (user_id, startAppointment, endAppointment, note, status, date)
+        )
         inserted_id = cursor.lastrowid
         conn.commit()
 
         query = "insert into service (user_id, appointment_id, service_type) values (%s, %s, %s)"
         cursor.execute(query, (user_id, inserted_id, serviceType))
+        conn.commit()
+
+        cursor.execute(
+            "update appointment_backup set status = 10 where user_id = %s and status = 3",
+            (user_id,),
+        )
         conn.commit()
 
         for admin in admins:
@@ -911,19 +925,21 @@ def register():
     password = request.args.get("password")
     email = request.args.get("email")
     role = request.args.get("role")
-
+    print(role)
     query = (
         "INSERT INTO user (username, password , role, email) VALUES (%s, %s, %s ,%s)"
     )
     cursor.execute(query, (username, password, role, email))
     inserted_id = cursor.lastrowid
-
-    tooth_condition_query = "INSERT INTO tooth_conditions (user_id) VALUES (%s)"
-    cursor.execute(tooth_condition_query, (inserted_id,))
-
-    customer_query = "INSERT INTO customer_detail (user) VALUES (%s)"
-    cursor.execute(customer_query, (inserted_id,))
     conn.commit()
+
+    if role == "user":
+        tooth_condition_query = "INSERT INTO tooth_conditions (user_id) VALUES (%s)"
+        cursor.execute(tooth_condition_query, (inserted_id,))
+
+        customer_query = "INSERT INTO customer_detail (user) VALUES (%s)"
+        cursor.execute(customer_query, (inserted_id,))
+        conn.commit()
 
     cursor.close()
     conn.close()

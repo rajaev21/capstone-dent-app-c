@@ -59,7 +59,7 @@ $getDate = date("Y-m-d", strtotime($_SESSION['selectedDate']))
 			$status = $result['status'];
 			$aid = $result['aid'];
 
-			if ($date < strtotime($dateToday) && ($status == 1 || $status == 2)) {
+			if (strtotime($date) < strtotime($dateToday) && ($status == 1 || $status == 2)) {
 				$response = file_get_contents('http://localhost:5000/changeStatus?aid=' . $aid);
 				$response = json_decode($response, true);
 			} elseif ($status == 1) {
