@@ -23,5 +23,5 @@ if (isset($_POST['submit'])) {
     );
     $response = json_decode($response, true);
 
-    header("location: ../index.php?selectedDate=" . date("d-m-Y"));
+    header("location: ../index.php?selectedDate=" . date("Y-m-d"));
 }

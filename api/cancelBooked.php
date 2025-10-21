@@ -9,6 +9,6 @@ if (isset($_POST['cancel'])) {
   $result = file_get_contents("http://localhost:5000/cancelSingleAppointment?aid=" . urlencode($aid) . "&admin_id=" . urlencode($admin_id) . "&user_id=" .  urlencode($user_id) . "&reason=" . urlencode($reason));
   $result = json_decode($result);
   if ($result) {
-    header("location: ../index.php?selectedDate=" . date("d-m-Y"));
+    header("location: ../index.php?selectedDate=" . date("Y-m-d"));
   }
 }

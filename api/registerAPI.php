@@ -1,5 +1,5 @@
 <?php
-
+date_default_timezone_set('Asia/Manila');
 
 if (isset($_POST['register'])) {
   $username = $_POST['username'];
@@ -53,11 +53,7 @@ if (isset($_POST['register'])) {
       $response = json_decode($response, true);
       $id = $response['inserted_id'];
 
-      header('location: ../customer_form.php?id=' . $id);
-      session_start();
-      $_SESSION['id'] = $id;
-      $_SESSION['email'] = $email;
-      $_SESSION['role'] = "user";
+      header('location: ../login.php?response=Registration complete');
     }
   }
 }

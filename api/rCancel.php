@@ -11,6 +11,6 @@ if (isset($_POST['answer'])) {
   if ($answer == "No") {
     header("location: ../customer_details.php?aid=" . urlencode($aid));
   } else {
-    header("location: ../index.php?selectedDate=" . date("d-m-Y"));
+    header("location: ../index.php?selectedDate=" . date("Y-m-d"));
   }
 }

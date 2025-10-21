@@ -1,14 +1,16 @@
 <?php
 if (empty($_SESSION)) {
   session_start();
+  date_default_timezone_set('Asia/Manila');
+  if (empty($_SESSION['id']) && $_SESSION['confirm'] == false) {
+    header('location:login.php');
+  }
 }
-date_default_timezone_set('Asia/Manila');
-
 ?>
 <nav class="navbar navbar-expand-lg navbar-light bg-light px-5 pb-3">
   <div class="col">
     <a class="navbar-brand h3 fw-bold mx-5"
-      href="index.php?selectedDate=<?= isset($_GET['selectedDate']) ? $_GET['selectedDate'] : date('Y-m-d') ?>">
+      href="index.php?selectedDate=<?= date('Y-m-d') ?>">
       Dent App
     </a>
   </div>
@@ -88,7 +90,7 @@ date_default_timezone_set('Asia/Manila');
                   ${new Date("1970-01-01T" + row.appointment_start + "Z").toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                 </div>
                 ${row.reason ? `<div class="p">Reason: ${row.reason}</div>` : ""}
-                <div class="fw-light" style="font-size: 10px;">Date cancelled: ${formattedCancel}</div>
+                <div class="fw-light" style="font-size: 10px;">Date: ${formattedCancel}</div>
               </li>
             `;
           });

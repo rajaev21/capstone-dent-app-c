@@ -1,5 +1,6 @@
 <?php
 session_start();
+date_default_timezone_set('Asia/Manila');
 
 if (isset($_POST['confirmOtp'])) {
     $userOtp = $_POST['otp'];
@@ -17,7 +18,7 @@ if (isset($_POST['confirmOtp'])) {
             $_SESSION['confirm'] = true;
             $_SESSION['id'] = $result['id'];
 
-            header('Location:../index.php?selectedDate=' . date("d-m-Y"));
+            header('Location:../index.php?selectedDate=' . date("Y-m-d"));
             exit();
         }
     } else {

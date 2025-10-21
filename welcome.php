@@ -1,4 +1,4 @@
 <div class="container p-3">
-    <h1>Welcome Page</h1>
-    <h6>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Doloribus minima suscipit distinctio, eveniet voluptatem nemo ipsum itaque consequuntur magnam molestiae. Alias vitae laborum impedit velit, omnis sit blanditiis minima id!</h6>
+    <h1>Salapantan Dental Clinic</h1>
+    <h6>Your smile is our priority. We’re dedicated to providing gentle, high-quality dental care in a comfortable and caring environment. Whether you’re here for a routine checkup or a complete smile makeover, our team is ready to help you achieve the healthy, confident smile you deserve.</h6>
 </div>

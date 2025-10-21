@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('Asia/Manila');
 if (isset($_GET['appoint'])) {
     $id = $_GET['id'];
     $firstName = $_GET['firstName'];

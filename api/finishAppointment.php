@@ -36,4 +36,4 @@ if (isset($_POST['approve'])) {
         $cancel = json_decode($cancel, true);
     }
 }
-header("location: ../index.php?selectedDate=" . date("d-m-Y"));
+header("location: ../index.php?selectedDate=" . date("Y-m-d"));

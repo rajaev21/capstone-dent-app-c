@@ -7,7 +7,6 @@ if (empty($_SESSION['id']) && $_SESSION['confirm'] == false) {
 
 $date = $_GET['date'];
 $timeStart = $_GET['time'];
-$timeEnd = date("H:i", strtotime("+30 minutes", strtotime($timeStart)));
 
 if (isset($_GET['user_id']) && isset($_GET['aid'])) {
     $user_id = $_GET['user_id'];
@@ -31,11 +30,7 @@ if (isset($_GET['user_id']) && isset($_GET['aid'])) {
 <body>
     <?php include('nav.php') ?>
     <?php include('welcome.php') ?>
-    <?php if ($_SESSION['role'] == 'admin' || $_SESSION['role'] == 'super') {
-        include('appointment_form_admin.php');
-    } else {
-        include('appointment_form_user.php');
-    } ?>
+    <?php include('appointment_form_user.php'); ?>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 </body>

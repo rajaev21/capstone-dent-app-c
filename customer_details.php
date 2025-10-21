@@ -16,6 +16,113 @@ if (!isset($_SESSION['id'])) {
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- BS icon -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    .back-tooth,
+    .front-tooth {
+      position: relative;
+      width: 60px;
+      height: 30px;
+      background-color: blue;
+    }
+
+    .back-tooth #quad1 {
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      clip-path: polygon(0% 5%, 20% 29%, 20% 75%, 0% 95%);
+      background-color: white;
+    }
+
+    .back-tooth #quad2 {
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      clip-path: polygon(0 0, 100% 0, 75% 25%, 25% 25%);
+      background-color: white;
+    }
+
+    .back-tooth #quad3 {
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      clip-path: polygon(80% 30%, 100% 5%, 100% 95%, 80% 75%);
+      background-color: white;
+    }
+
+    .back-tooth #quad4 {
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      clip-path: polygon(25% 80%, 75% 80%, 100% 100%, 0% 100%);
+      background-color: white;
+    }
+
+    .back-tooth #quad5 {
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      clip-path: polygon(25% 30%, 75% 30%, 75% 75%, 25% 75%);
+      background-color: white;
+    }
+
+    .front-tooth #quad1 {
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      clip-path: polygon(0 0, 25% 50%, 25% 50%, 0 100%);
+      background-color: white;
+    }
+
+    .front-tooth #quad2 {
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      clip-path: polygon(5% 0%, 95% 0%, 70% 45%, 30% 45%);
+      background-color: white;
+    }
+
+    .front-tooth #quad3 {
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      clip-path: polygon(100% 0%, 100% 100%, 75% 50%, 75% 50%);
+      background-color: white;
+    }
+
+    .front-tooth #quad4 {
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      clip-path: polygon(5% 100%, 30% 50%, 70% 50%, 95% 100%);
+      background-color: white;
+    }
+
+    #legends {
+      width: 11rem;
+      height: 12rem;
+      position: absolute;
+      top: 5px;
+      right: 1rem;
+    }
+  </style>
 </head>
 
 <body>
@@ -170,256 +277,68 @@ if (!isset($_SESSION['id'])) {
             </div>
           </div>
         </div>
-
-        <div class="my-4">
-          <h2 class="mb-4">Findings</h2>
-          <div class="text-center mb-4">
-            <img src="img/tooth_chart.jpg" alt="Tooth Chart" class="img-fluid">
-          </div>
-          <form action="./api/setFindings.php" method="post">
-            <div class="row g-3">
-              <div class="col-6 col-md-3">
-                <label for="tooth1" class="form-label">Tooth 1</label>
-                <input type="text" class="form-control" id="tooth1" name="tooth1" value="<?php echo $response[0]['tooth1'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth2" class="form-label">Tooth 2</label>
-                <input type="text" class="form-control" id="tooth2" name="tooth2" value="<?php echo $response[0]['tooth2'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth3" class="form-label">Tooth 3</label>
-                <input type="text" class="form-control" id="tooth3" name="tooth3" value="<?php echo $response[0]['tooth3'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth4" class="form-label">Tooth 4</label>
-                <input type="text" class="form-control" id="tooth4" name="tooth4" value="<?php echo $response[0]['tooth4'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth5" class="form-label">Tooth 5</label>
-                <input type="text" class="form-control" id="tooth5" name="tooth5" value="<?php echo $response[0]['tooth5'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth6" class="form-label">Tooth 6</label>
-                <input type="text" class="form-control" id="tooth6" name="tooth6" value="<?php echo $response[0]['tooth6'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth7" class="form-label">Tooth 7</label>
-                <input type="text" class="form-control" id="tooth7" name="tooth7" value="<?php echo $response[0]['tooth7'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth8" class="form-label">Tooth 8</label>
-                <input type="text" class="form-control" id="tooth8" name="tooth8" value="<?php echo $response[0]['tooth8'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth9" class="form-label">Tooth 9</label>
-                <input type="text" class="form-control" id="tooth9" name="tooth9" value="<?php echo $response[0]['tooth9'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth10" class="form-label">Tooth 10</label>
-                <input type="text" class="form-control" id="tooth10" name="tooth10" value="<?php echo $response[0]['tooth10'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth11" class="form-label">Tooth 11</label>
-                <input type="text" class="form-control" id="tooth11" name="tooth11" value="<?php echo $response[0]['tooth11'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth12" class="form-label">Tooth 12</label>
-                <input type="text" class="form-control" id="tooth12" name="tooth12" value="<?php echo $response[0]['tooth12'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth13" class="form-label">Tooth 13</label>
-                <input type="text" class="form-control" id="tooth13" name="tooth13" value="<?php echo $response[0]['tooth13'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth14" class="form-label">Tooth 14</label>
-                <input type="text" class="form-control" id="tooth14" name="tooth14" value="<?php echo $response[0]['tooth14'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth15" class="form-label">Tooth 15</label>
-                <input type="text" class="form-control" id="tooth15" name="tooth15" value="<?php echo $response[0]['tooth15'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth16" class="form-label">Tooth 16</label>
-                <input type="text" class="form-control" id="tooth16" name="tooth16" value="<?php echo $response[0]['tooth16'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth17" class="form-label">Tooth 17</label>
-                <input type="text" class="form-control" id="tooth17" name="tooth17" value="<?php echo $response[0]['tooth17'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth18" class="form-label">Tooth 18</label>
-                <input type="text" class="form-control" id="tooth18" name="tooth18" value="<?php echo $response[0]['tooth18'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth19" class="form-label">Tooth 19</label>
-                <input type="text" class="form-control" id="tooth19" name="tooth19" value="<?php echo $response[0]['tooth19'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth20" class="form-label">Tooth 20</label>
-                <input type="text" class="form-control" id="tooth20" name="tooth20" value="<?php echo $response[0]['tooth20'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth21" class="form-label">Tooth 21</label>
-                <input type="text" class="form-control" id="tooth21" name="tooth21" value="<?php echo $response[0]['tooth21'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth22" class="form-label">Tooth 22</label>
-                <input type="text" class="form-control" id="tooth22" name="tooth22" value="<?php echo $response[0]['tooth22'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth23" class="form-label">Tooth 23</label>
-                <input type="text" class="form-control" id="tooth23" name="tooth23" value="<?php echo $response[0]['tooth23'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth24" class="form-label">Tooth 24</label>
-                <input type="text" class="form-control" id="tooth24" name="tooth24" value="<?php echo $response[0]['tooth24'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth25" class="form-label">Tooth 25</label>
-                <input type="text" class="form-control" id="tooth25" name="tooth25" value="<?php echo $response[0]['tooth25'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth26" class="form-label">Tooth 26</label>
-                <input type="text" class="form-control" id="tooth26" name="tooth26" value="<?php echo $response[0]['tooth26'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth27" class="form-label">Tooth 27</label>
-                <input type="text" class="form-control" id="tooth27" name="tooth27" value="<?php echo $response[0]['tooth27'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth28" class="form-label">Tooth 28</label>
-                <input type="text" class="form-control" id="tooth28" name="tooth28" value="<?php echo $response[0]['tooth28'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth29" class="form-label">Tooth 29</label>
-                <input type="text" class="form-control" id="tooth29" name="tooth29" value="<?php echo $response[0]['tooth29'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth30" class="form-label">Tooth 30</label>
-                <input type="text" class="form-control" id="tooth30" name="tooth30" value="<?php echo $response[0]['tooth30'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth31" class="form-label">Tooth 31</label>
-                <input type="text" class="form-control" id="tooth31" name="tooth31" value="<?php echo $response[0]['tooth31'] ?>">
-              </div>
-              <div class="col-6 col-md-3">
-                <label for="tooth32" class="form-label">Tooth 32</label>
-                <input type="text" class="form-control" id="tooth32" name="tooth32" value="<?php echo $response[0]['tooth32'] ?>">
-              </div>
-            </div>
-            <input type="hidden" name="user_id" value="<?php echo $response[0]['user_id'] ?>">
-            <input type="hidden" name="aid" value="<?php echo $_GET['aid'] ?>">
-            <button type="submit" class="btn btn-primary mt-4">Submit Findings</button>
-          </form>
-        </div>
+        <!-- <?php include('dental-chart.php') ?> -->
 
         <div class="container mt-5">
-          <div class="row fw-bold border-bottom pb-2 mb-2">
-            <h4 class="col-4 mb-4"> Dental Services & Prices</h4>
+          <?php include('services.php') ?>
 
-            <div class="">
-              <form action="./api/submitAdditionalServices.php" method="post">
-                <label for="services" class="form-label">Additional Services</label>
-                <select name="additionalServices" id="services">
-                  <?php
-                  $services = file_get_contents('http://localhost:5000/getServices?');
-                  $services = json_decode($services, true);
-                  foreach ($services as $result) {
-                    echo '<option value="' . $result['id'] . '">' . $result['service_type'] . '</option>';
-                  }
-                  ?>
-                </select>
-                <input type="hidden" name="user_id" value="<?php echo $response[0]['user_id'] ?>">
-                <input type="hidden" name="appointment_id" value="<?php echo $_GET['aid'] ?>">
-                <input type="submit" name="submit" class="btn btn-primary" value="Add Service">
-
-              </form>
-            </div>
-          </div>
-
-          <div class="row fw-bold border-bottom pb-2 mb-2">
-            <div class="col-8">Service Type</div>
-            <div class="col-4 text-end">Price (PHP)</div>
-          </div>
-          <?php
-          $services = file_get_contents('http://localhost:5000/getCustomerServices?appointment_id=' . $_GET['aid']);
-          $services = json_decode($services, true);
-          foreach ($services as $service) {
-          ?>
-            <div class="row mb-2">
-              <div class="col-8"><?php echo $service['serviceType'] ?></div>
-              <div class="col-4 text-end"><?php echo $service['servicePrice'] ?></div>
-            </div>
-          <?php } ?>
-          <div class="row fw-bold border-top pt-2 mt-2">
-            <div class="col-8">Total</div>
-            <div class="col-4 text-end">
-              <?php
-              $total = 0;
-              foreach ($services as $service) {
-                $total += $service['servicePrice'];
-              }
-              echo $total;
-              ?>
-
-            </div>
-          </div>
-            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#finish">
-              Finish Appointment
-            </button>
-            <div class="modal fade" id="finish" tabindex="-1" aria-labelledby="finishLabel" aria-hidden="true">
-              <div class="modal-dialog">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <h5 class="modal-title" id="finishLabel">Finish Appointment</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                  </div>
-                  <div class="modal-footer">
-                    <form action="./api/finishAppointment.php" method="POST">
-                      <input type="hidden" name="id" value="<?php echo $_GET['aid'] ?>">
-                      <input type="hidden" name="admin_id" value="<?php echo $_SESSION['id'] ?>">
-                      <input type="hidden" name="user_id" value="<?php echo $response[0]['user_id'] ?>">
-                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                      <input type="submit" name="finish" value="Finish Appointment" class="btn btn-success">
-                    </form>
-                  </div>
+          <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#finish">
+            Finish Appointment
+          </button>
+          <div class="modal fade" id="finish" tabindex="-1" aria-labelledby="finishLabel" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="finishLabel">Finish Appointment</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-              </div>
-            </div>
-
-
-            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancel">
-              Cancel Appointment
-            </button>
-            <div class="modal fade" id="cancel" tabindex="-1" aria-labelledby="cancelLabel" aria-hidden="true">
-              <div class="modal-dialog">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <h5 class="modal-title" id="cancelLabel">Cancel Appointment</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                  </div>
+                <div class="modal-footer">
                   <form action="./api/finishAppointment.php" method="POST">
                     <input type="hidden" name="id" value="<?php echo $_GET['aid'] ?>">
                     <input type="hidden" name="admin_id" value="<?php echo $_SESSION['id'] ?>">
                     <input type="hidden" name="user_id" value="<?php echo $response[0]['user_id'] ?>">
-                    <div class="modal-body">
-                      <div class="p-1">
-                        <label class="form-label d-flex justify-content-start" for="reason">Reason for cancellation:</label>
-                        <textarea class="form-control" name="reason" id="reason" row="4" required></textarea>
-                      </div>
-                    </div>
-                    <div class="modal-footer">
-                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                      <input type="submit" name="cancel" value="Cancel Appointment" class="btn btn-danger">
-                    </div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <input type="submit" name="finish" value="Finish Appointment" class="btn btn-success">
                   </form>
                 </div>
               </div>
             </div>
+          </div>
+
+
+          <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancel">
+            Cancel Appointment
+          </button>
+          <div class="modal fade" id="cancel" tabindex="-1" aria-labelledby="cancelLabel" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="cancelLabel">Cancel Appointment</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="./api/finishAppointment.php" method="POST">
+                  <input type="hidden" name="id" value="<?php echo $_GET['aid'] ?>">
+                  <input type="hidden" name="admin_id" value="<?php echo $_SESSION['id'] ?>">
+                  <input type="hidden" name="user_id" value="<?php echo $response[0]['user_id'] ?>">
+                  <div class="modal-body">
+                    <div class="p-1">
+                      <label class="form-label d-flex justify-content-start" for="reason">Reason for cancellation:</label>
+                      <textarea class="form-control" name="reason" id="reason" row="4" required></textarea>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <input type="submit" name="cancel" value="Cancel Appointment" class="btn btn-danger">
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
         <?php } ?>
       <?php } ?>
 
-
+      <script>
+      </script>
       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
