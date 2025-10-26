@@ -430,14 +430,77 @@ def getCustomerServices():
     return result
 
 
-@app.route("/additionalServices", methods=["GET"])
-def additionalServices():
+@app.route("/getDentist", methods=["GET"])
+def getDentist():
     conn = mysql.connector.connect(**db_config)
     cursor = conn.cursor(dictionary=True)
 
-    additionalServices = request.args.get("additionalServices")
-    appointment_id = request.args.get("appointment_id")
-    user_id = request.args.get("user_id")
+    aid = request.args.get("aid")
+    query = "select * from dentist where aid = %s"
+    cursor.execute(query, (aid,))
+    result = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+    return result
+
+@app.route("/getPayments", methods=["GET"])
+def getPayments():
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+
+    aid = request.args.get("aid")
+    query = "select * from payment where aid = %s"
+    cursor.execute(query, (aid,))
+    result = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+    return result
+
+
+@app.route("/addPayment", methods=["POST"])
+def addPayment():
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+    data = request.get_json()
+    payment = data.get("payment")
+    aid = data.get("aid")
+    print(payment, aid)
+    query = "insert into payment ( payment, aid ) values ( %s, %s )"
+    cursor.execute(query, (payment, aid))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return {"message": "Success"}
+
+
+@app.route("/addDentist", methods=["POST"])
+def addDentist():
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+    data = request.get_json()
+    dentist = data.get("dentist")
+    aid = data.get("aid")
+    print(dentist, aid)
+    query = "insert into dentist ( dentist, aid ) values ( %s, %s )"
+    cursor.execute(query, (dentist, aid))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return {"message": "Success"}
+
+
+@app.route("/additionalServices", methods=["POST"])
+def additionalServices():
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+    data = request.get_json()
+    additionalServices = data.get("additionalServices")
+    appointment_id = data.get("aid")
+    user_id = data.get("user_id")
 
     query = "insert into service (user_id, appointment_id, service_type) values (%s, %s, %s)"
     cursor.execute(query, (user_id, appointment_id, additionalServices))
@@ -445,7 +508,7 @@ def additionalServices():
 
     cursor.close()
     conn.close()
-    return "Success"
+    return {"message": "Success"}
 
 
 @app.route("/getServices", methods=["GET"])
@@ -584,6 +647,43 @@ def rejectAppointment():
     return {"data": "success"}
 
 
+@app.route("/getComplaints", methods=["GET"])
+def getComplaints():
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+
+    aid = request.args.get("aid")
+
+    cursor.execute("select * from complaints where aid = %s", (aid,))
+
+    result = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    return result
+
+
+@app.route("/saveComplaints", methods=["POST"])
+def saveComplaints():
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+
+    data = request.get_json()
+    aid = data.get("aid")
+    complaints = data.get("complaints")
+    # print(aid, complaints)
+    cursor.execute(
+        "insert into complaints (`complaint`, `aid` ) values (%s, %s) ",
+        (complaints, aid),
+    )
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return {"data": "success"}
+
+
 @app.route("/rescheduleRequest", methods=["POST"])
 def rescheduleRequest():
     conn = mysql.connector.connect(**db_config)
@@ -598,6 +698,10 @@ def rescheduleRequest():
         result = cursor.fetchall()
         cursor.execute(
             "update appointment_backup set status = 4 where status in (1,6,7) and user_id = %s",
+            (result[0]["user_id"],),
+        )
+        cursor.execute(
+            "update appointment_backup set status = 8 where status = 3 and user_id = %s",
             (result[0]["user_id"],),
         )
 

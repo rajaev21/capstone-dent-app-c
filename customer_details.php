@@ -1,5 +1,6 @@
 <?php
 session_start();
+$user_id = $_SESSION['id'];
 if (!isset($_SESSION['id'])) {
   header('Location:./login.php?response=Please log in again');
   exit();
@@ -277,7 +278,7 @@ if (!isset($_SESSION['id'])) {
             </div>
           </div>
         </div>
-        <!-- <?php include('dental-chart.php') ?> -->
+        <?php include('dental-chart.php') ?>
 
         <div class="container mt-5">
           <?php include('services.php') ?>

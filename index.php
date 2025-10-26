@@ -438,13 +438,11 @@ $role = $_SESSION['role'];
       return data;
     }
 
-
     async function getAppointmentServices(aid) {
       const response = await fetch(`http://localhost:5000/getAppointmentServices?aid=${aid}`);
       const data = await response.json();
       return data;
     }
-
 
     function requestAppointment() {
       newAppointment.user_id = user_id
@@ -738,7 +736,7 @@ $role = $_SESSION['role'];
         const reasonInput = document.getElementById("reason").value.trim();
         const response = fetch(`http://localhost:5000/cancelBooked?aid=${id}&reason=${reasonInput}&user_id=${user_id}`);
         const reason = response.json();
-        // window.location.reload()
+        window.location.reload()
       })
     }
 
@@ -800,7 +798,7 @@ $role = $_SESSION['role'];
         }).then(data => {
           console.log('Success:', data);
         })
-        // .then(() => window.location.reload())
+        .then(() => window.location.reload())
         .catch(error => {
           console.error('Error:', error);
         });
@@ -852,12 +850,11 @@ $role = $_SESSION['role'];
         }).then(data => {
           console.log('Success:', data);
         })
-        // .then(() => window.location.reload())
+        .then(() => window.location.reload())
         .catch(error => {
           console.error('Error:', error);
         });
     }
-
 
     calendar.render();
   </script>
