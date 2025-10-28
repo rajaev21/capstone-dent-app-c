@@ -144,12 +144,10 @@ $role = $_SESSION['role'];
     let isRescheduling = false;
     let bHours = [{
         // days of week. an array of zero-based day of week integers (0=Sunday)
-        daysOfWeek: [1, 2, 3, 4, 5, 6], // Monday - Saturday
         startTime: '08:00', // 8 am
         endTime: '12:00', // 12 pm
       },
       {
-        daysOfWeek: [1, 2, 3, 4, 5, 6], // Monday - Saturday
         startTime: '13:00', // 1 pm
         endTime: '20:00', // 8 pm
       }
@@ -160,7 +158,7 @@ $role = $_SESSION['role'];
         isAppointedData = await isAppointedUser()
         if (isAppointedData.length > 0) {
           const userAppointment = isAppointedData[0]
-          console.log(userAppointment)
+          if (userAppointment.isValidated !== 1) window.location.href = "http://localhost/salologan/customer_form.php?id=3";
           selectContainer.innerHTML = ``
           let newHtml = "";
           switch (userAppointment.status) {
@@ -812,7 +810,6 @@ $role = $_SESSION['role'];
       const afternoonEnd = convertTimeToNumber(bHours[1].endTime)
       const start = convertTimeToNumber(dateStart.toTimeString().slice(0, 5))
       const end = convertTimeToNumber(dateEnd.toTimeString().slice(0, 5))
-      if (day === 0) return false;
 
       const isMorning = start >= morningStart && end <= morningEnd;
       const isAfternoon = start >= afternoonStart && end <= afternoonEnd;

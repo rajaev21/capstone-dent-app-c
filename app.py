@@ -224,7 +224,7 @@ def isAppointed():
     conn = mysql.connector.connect(**db_config)
     cursor = conn.cursor(dictionary=True)
     user_id = request.args.get("user_id")
-    query = "SELECT * FROM appointment_backup WHERE user_id = %s AND status not in (4,5,3) order by aid asc limit 1"
+    query = "SELECT * FROM appointment_backup ab join customer_detail cd on cd.user = ab.user_id WHERE user_id = %s AND status not in (4,5,3) order by aid asc limit 1"
     cursor.execute(query, (user_id,))
     result = cursor.fetchall()
 
