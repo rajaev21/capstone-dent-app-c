@@ -1,6 +1,6 @@
 <?php
 date_default_timezone_set('Asia/Manila');
-$bypassUser = ['a', 'xx', 'xxx', 'xxxx'];
+$bypassUser = ['a', 'xx', 'xxx', 'xxxx', "test"];
 if (isset($_POST['login'])) {
 
     $username = $_POST['username'];

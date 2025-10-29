@@ -156,9 +156,10 @@ $role = $_SESSION['role'];
     document.addEventListener("DOMContentLoaded", async function() {
       if (role === 'user') {
         isAppointedData = await isAppointedUser()
+        if (isAppointedData.isValidated != 1) {
+          window.location.href = `http://localhost/salologan/customer_form.php?id=${user_id}`
+        }
         if (isAppointedData.length > 0) {
-          const userAppointment = isAppointedData[0]
-          if (userAppointment.isValidated !== 1) window.location.href = "http://localhost/salologan/customer_form.php?id=3";
           selectContainer.innerHTML = ``
           let newHtml = "";
           switch (userAppointment.status) {
