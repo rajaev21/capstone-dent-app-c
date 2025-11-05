@@ -143,20 +143,20 @@ $role = $_SESSION['role'];
     let newAppointment = {};
     let isRescheduling = false;
     let bHours = [{
-        // days of week. an array of zero-based day of week integers (0=Sunday)
-        startTime: '08:00', // 8 am
-        endTime: '12:00', // 12 pm
+        startTime: '08:00',
+        endTime: '12:00',
       },
       {
-        startTime: '13:00', // 1 pm
-        endTime: '20:00', // 8 pm
+        startTime: '13:00',
+        endTime: '20:00',
       }
     ]
 
     document.addEventListener("DOMContentLoaded", async function() {
       if (role === 'user') {
         isAppointedData = await isAppointedUser()
-        if (isAppointedData.isValidated != 1) {
+        isValidated = await isValidated()
+        if (isValidated[0].isValidated == 0) {
           window.location.href = `http://localhost/salologan/customer_form.php?id=${user_id}`
         }
         if (isAppointedData.length > 0) {
@@ -824,6 +824,11 @@ $role = $_SESSION['role'];
       return hours + minutes;
     }
 
+    async function isValidated() {
+      const response = await fetch(`http://localhost:5000/getCustomerDetails?user_id=${user_id}`);
+      const data = await response.json();
+      return data;
+    }
     async function isAppointedUser() {
       const response = await fetch(`http://localhost:5000/isAppointed?user_id=${user_id}`);
       const data = await response.json();

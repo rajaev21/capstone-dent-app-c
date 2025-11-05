@@ -237,8 +237,8 @@ def isAppointed():
 def getCustomerDetails():
     conn = mysql.connector.connect(**db_config)
     cursor = conn.cursor(dictionary=True)
-
-    user_id = request.args.get("id")
+    user_id = request.args.get("user_id")
+    print(user_id)
     query = "select isValidated from customer_detail where user = %s"
     cursor.execute(query, (user_id,))
     result = cursor.fetchall()
@@ -443,6 +443,7 @@ def getDentist():
     cursor.close()
     conn.close()
     return result
+
 
 @app.route("/getPayments", methods=["GET"])
 def getPayments():
