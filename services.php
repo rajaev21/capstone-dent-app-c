@@ -182,7 +182,8 @@
       div.textContent = c.payment;
       payment.appendChild(div);
     });
-    const total = res.map(item => item.payment).reduce((x, y) => (x + y, 0))
+
+    const total = res.reduce((x, y) => x + y.payment, 0)
     const newdiv = document.createElement("div");
     newdiv.textContent = `Total : ${total}`;
     newdiv.classList.add("text-end", "fw-bold")
@@ -206,7 +207,7 @@
       }).then(data => {
         console.log('Success:', data);
       })
-      // .then(() => window.location.reload())
+      .then(() => window.location.reload())
       .catch(error => {
         console.error('Error:', error);
       });
@@ -231,7 +232,7 @@
       }).then(data => {
         console.log('Success:', data);
       })
-      // .then(() => window.location.reload())
+      .then(() => window.location.reload())
       .catch(error => {
         console.error('Error:', error);
       });
@@ -255,7 +256,7 @@
       }).then(data => {
         console.log('Success:', data);
       })
-      // .then(() => window.location.reload())
+      .then(() => window.location.reload())
       .catch(error => {
         console.error('Error:', error);
       });
@@ -279,7 +280,7 @@
       }).then(data => {
         console.log('Success:', data);
       })
-      // .then(() => window.location.reload())
+      .then(() => window.location.reload())
       .catch(error => {
         console.error('Error:', error);
       });

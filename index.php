@@ -154,12 +154,14 @@ $role = $_SESSION['role'];
 
     document.addEventListener("DOMContentLoaded", async function() {
       if (role === 'user') {
-        isAppointedData = await isAppointedUser()
         isValidated = await isValidated()
         if (isValidated[0].isValidated == 0) {
           window.location.href = `http://localhost/salologan/customer_form.php?id=${user_id}`
         }
+        isAppointedData = await isAppointedUser()
+        console.log(isAppointedData)
         if (isAppointedData.length > 0) {
+          userAppointment = isAppointedData[0]
           selectContainer.innerHTML = ``
           let newHtml = "";
           switch (userAppointment.status) {
@@ -215,7 +217,6 @@ $role = $_SESSION['role'];
                 </div>
                 `
               break;
-
             default:
               break;
           }

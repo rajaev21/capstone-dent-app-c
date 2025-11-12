@@ -29,6 +29,15 @@ if (isset($_GET['appoint'])) {
     $relationship = $_GET['relationship'];
     $emergencyContactNumber = $_GET['emergencyContactNumber'];
 
+    $isBeingTreated = $_GET['isBeingTreated'];
+    $isHospitalized = $_GET['isHospitalized'];
+    $isAllergy = $_GET['isAllergy'];
+
+    $menstrual = $_GET['menstrual'];
+    $isPregnant = $_GET['isPregnant'];
+    $isBreastfeeding = $_GET['isBreastfeeding'];
+    $additionalInformation = $_GET['additionalInformation'];
+
     $taken = $_GET['taken'];
     $conditions = $_GET['conditions'];
 
@@ -56,8 +65,15 @@ if (isset($_GET['appoint'])) {
             '&emergencyLastname=' . urlencode($emergencyLastname) .
             '&relationship=' . urlencode($relationship) .
             '&emergencyContactNumber=' . urlencode($emergencyContactNumber) .
+            '&isBeingTreated=' . urlencode($isBeingTreated) .
+            '&isHospitalized=' . urlencode($isHospitalized) .
+            '&isAllergy=' . urlencode($isAllergy) .
+            '&menstrual=' . urlencode($menstrual) .
+            '&isPregnant=' . urlencode($isPregnant) .
+            '&isBreastfeeding=' . urlencode($isBreastfeeding) .
+            '&additionalInformation=' . urlencode($additionalInformation) .
             '&taken=' . urlencode(json_encode($taken)) .
             '&conditions=' . urlencode(json_encode($conditions))
     );
-    header('Location:../index.php?selectedDate=' . date("Y-m-d"));
+    header("Location:../customer_form.php?id=$id");
 }

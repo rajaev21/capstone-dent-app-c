@@ -19,7 +19,7 @@
   <script>
     let legendChanges = []
     let shadeChanges = []
-    let customerID = <?= $response[0]['user_id'] ?>;
+    let customerID = <?= $user ?>;
 
     window.addEventListener('DOMContentLoaded', async function() {
       const toothConditions = await fetchToothConditions();

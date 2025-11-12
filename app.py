@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from flask_cors import CORS
 import mysql.connector
 import logging
@@ -117,7 +117,6 @@ def cancelBooked():
     try:
         conn.start_transaction()
 
-        print(aid, reason, user_id)
         cursor.execute("select * from appointment_backup where aid = %s", (aid,))
         result = cursor.fetchall()
         notifyAdminsQuery = "insert into notification ( `aid`, `message`, `reason`, `sentBy`, `sentTo` ) select %s, %s, %s, %s, id from user where role = 'admin'"
@@ -224,7 +223,7 @@ def isAppointed():
     conn = mysql.connector.connect(**db_config)
     cursor = conn.cursor(dictionary=True)
     user_id = request.args.get("user_id")
-    query = "SELECT * FROM appointment_backup ab join customer_detail cd on cd.user = ab.user_id WHERE user_id = %s AND status not in (4,5,3) order by aid asc limit 1"
+    query = "SELECT * FROM appointment_backup ab join customer_detail cd on cd.user = ab.user_id WHERE user_id = %s AND status not in (4,5,3,8) order by aid asc limit 1"
     cursor.execute(query, (user_id,))
     result = cursor.fetchall()
 
@@ -238,7 +237,6 @@ def getCustomerDetails():
     conn = mysql.connector.connect(**db_config)
     cursor = conn.cursor(dictionary=True)
     user_id = request.args.get("user_id")
-    print(user_id)
     query = "select isValidated from customer_detail where user = %s"
     cursor.execute(query, (user_id,))
     result = cursor.fetchall()
@@ -467,7 +465,6 @@ def addPayment():
     data = request.get_json()
     payment = data.get("payment")
     aid = data.get("aid")
-    print(payment, aid)
     query = "insert into payment ( payment, aid ) values ( %s, %s )"
     cursor.execute(query, (payment, aid))
 
@@ -484,7 +481,6 @@ def addDentist():
     data = request.get_json()
     dentist = data.get("dentist")
     aid = data.get("aid")
-    print(dentist, aid)
     query = "insert into dentist ( dentist, aid ) values ( %s, %s )"
     cursor.execute(query, (dentist, aid))
 
@@ -546,46 +542,24 @@ def getAppointedCustomer():
 
     query = """
     SELECT
+    cd.*,
     ab.aid as aid,
     ab.status as status,
-    cd.user AS user_id,
-    cd.firstName AS firstname,
-    cd.lastName AS lastname,
-    cd.nickName AS nickname,
-    cd.address AS address,
-    cd.contactNumber AS contactNumber,
-    cd.facebook AS facebook,
     DATE(cd.birthDay) AS birthDay,
-    cd.nationality AS nationality,
-    cd.age AS age,
-    cd.gender AS gender,
-    cd.civilStatus AS civilStatus,
-    cd.occupation AS occupation,
-    cd.employer AS employer,
-    cd.clinic AS clinic,
-    cd.prevClinic AS prevClinic,
-    cd.emergencyFirstname AS emergencyFirstname,
-    cd.emergencyLastname AS emergencyLastname,
-    cd.relationship AS relationship,
-    cd.emergencyContactNumber AS emergencyContactNumber,
-
     u.email AS email,
-    st.service_type as serviceType,
-    st.price as servicePrice,
-    n.reason as reason
+    GROUP_CONCAT(DISTINCT m.meds) AS medications,
+    GROUP_CONCAT(DISTINCT t.taken) AS taken_list
 
     FROM appointment_backup ab
     join customer_detail cd ON ab.user_id = cd.user
-    join service s on ab.user_id = s.user_id
-    join service_type st on s.service_type = st.id
     join user u ON ab.user_id = u.id
-    join notification n ON n.aid = ab.aid
-    WHERE ab.aid = %s
+    join taken t on ab.user_id = t.user
+    join medication m on ab.user_id = m.user
+    WHERE ab.aid = %s limit 1
     """
 
     cursor.execute(query, (aid,))
     result = cursor.fetchall()
-
     cursor.close()
     conn.close()
     return result
@@ -672,7 +646,6 @@ def saveComplaints():
     data = request.get_json()
     aid = data.get("aid")
     complaints = data.get("complaints")
-    # print(aid, complaints)
     cursor.execute(
         "insert into complaints (`complaint`, `aid` ) values (%s, %s) ",
         (complaints, aid),
@@ -730,6 +703,30 @@ def rescheduleRequest():
                         appointment["prevAid"],
                     ),
                 )
+                cursor.execute(
+                    """insert into payment (aid, payment)
+                    select %s, payment from payment where aid = %s""",
+                    (
+                        inserted_id,
+                        appointment["prevAid"],
+                    ),
+                )
+                cursor.execute(
+                    """insert into complaints (aid, complaint)
+                    select %s, complaint from complaints where aid = %s""",
+                    (
+                        inserted_id,
+                        appointment["prevAid"],
+                    ),
+                )
+                cursor.execute(
+                    """insert into dentist (aid, dentist)
+                    select %s, dentist from dentist where aid = %s""",
+                    (
+                        inserted_id,
+                        appointment["prevAid"],
+                    ),
+                )
             cursor.execute(
                 "insert into `notification`(`aid`, `message`, `reason`, `sentBy`,`sentTo` ) select %s ,%s, %s, %s, id from user where role = 'admin'",
                 (
@@ -760,6 +757,30 @@ def rescheduleRequest():
                     select %s, %s, service_type from service where appointment_id = %s""",
                     (
                         result[0]["user_id"],
+                        inserted_id,
+                        appointment["prevAid"],
+                    ),
+                )
+                cursor.execute(
+                    """insert into payment (aid, payment)
+                    select %s, payment from payment where aid = %s""",
+                    (
+                        inserted_id,
+                        appointment["prevAid"],
+                    ),
+                )
+                cursor.execute(
+                    """insert into complaints (aid, complaint)
+                    select %s, complaint from complaints where aid = %s""",
+                    (
+                        inserted_id,
+                        appointment["prevAid"],
+                    ),
+                )
+                cursor.execute(
+                    """insert into dentist (aid, dentist)
+                    select %s, dentist from dentist where aid = %s""",
+                    (
                         inserted_id,
                         appointment["prevAid"],
                     ),
@@ -799,7 +820,6 @@ def approveAppointment():
     overlapId = data.get("overlapId") or []
 
     try:
-        print(data)
         conn.start_transaction()
         if len(overlapId) > 0:
             for oid in overlapId:
@@ -999,16 +1019,15 @@ def selectUser():
 
     try:
         role = request.args.get("role")
-        query_user = "SELECT * FROM user WHERE role = %s"
+        query_user = "select u.id as id from user u join customer_detail cd on u.id = cd.user where u.role = %s and cd.isValidated = 1"
         cursor.execute(query_user, (role,))
         users = cursor.fetchall()
-
         user_details = []
         for user in users:
             user_id = user["id"]
 
             cursor.execute(
-                "SELECT * FROM customer_detail cd join user u on u.id = cd.user  WHERE `user` = %s",
+                "SELECT * FROM customer_detail cd join user u on u.id = cd.user WHERE `user` = %s",
                 (user_id,),
             )
             customer_detail = cursor.fetchall()
@@ -1174,6 +1193,13 @@ def addCustomer():
     emergencyLastname = request.args.get("emergencyLastname")
     relationship = request.args.get("relationship")
     emergencyContactNumber = request.args.get("emergencyContactNumber")
+    isBeingTreated = request.args.get("isBeingTreated")
+    isHospitalized = request.args.get("isHospitalized")
+    isAllergy = request.args.get("isAllergy")
+    menstrual = request.args.get("menstrual")
+    isPregnant = request.args.get("isPregnant")
+    isBreastfeeding = request.args.get("isBreastfeeding")
+    additionalInformation = request.args.get("additionalInformation")
 
     conditions = request.args.get("conditions")
     conditions = json.loads(conditions)
@@ -1205,6 +1231,13 @@ def addCustomer():
             emergencyLastname = %s,
             relationship = %s,
             emergencyContactNumber = %s,
+            isBeingTreated= %s,
+            isHospitalized= %s,
+            isAllergy= %s,
+            menstrual= %s,
+            isPregnant= %s,
+            isBreastfeeding= %s,
+            additionalInformation= %s,
             isValidated = %s
             WHERE `user` = %s
             """
@@ -1231,6 +1264,13 @@ def addCustomer():
                 emergencyLastname,
                 relationship,
                 emergencyContactNumber,
+                isBeingTreated,
+                isHospitalized,
+                isAllergy,
+                menstrual,
+                isPregnant,
+                isBreastfeeding,
+                additionalInformation,
                 1,
                 id,
             ),
