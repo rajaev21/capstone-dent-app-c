@@ -68,13 +68,13 @@
                                 <?php if ($appointment['status'] == 1 || $appointment['status'] == 2) { ?>
                                     <button class="btn btn-primary" onclick="goTo(<?php echo htmlspecialchars($appointment['aid']); ?>)">View</button>
                                 <?php } elseif ($appointment['status'] == 3) { ?>
-                                    <button class="btn btn-success" onclick="goTo(<?php echo htmlspecialchars($appointment['aid']); ?>)" disabled>Finished</button>
+                                    <button class="btn btn-success" onclick="goTo(<?php echo htmlspecialchars($appointment['aid']); ?>)">Finished</button>
                                 <?php } elseif ($appointment['status'] == 4) { ?>
-                                    <button class="btn btn-danger" onclick="goTo(<?php echo htmlspecialchars($appointment['aid']); ?>)" disabled>Cancelled</button>
+                                    <button class="btn btn-danger" onclick="goTo(<?php echo htmlspecialchars($appointment['aid']); ?>)">Cancelled</button>
                                 <?php } elseif ($appointment['status'] == 6) { ?>
-                                    <button class="btn btn-success" onclick="goTo(<?php echo htmlspecialchars($appointment['aid']); ?>)" disabled>Rescheduled</button>
+                                    <button class="btn btn-success" onclick="goTo(<?php echo htmlspecialchars($appointment['aid']); ?>)">Rescheduled</button>
                                 <?php } else { ?>
-                                    <button class="btn btn-danger" onclick="goTo(<?php echo htmlspecialchars($appointment['aid']); ?>)" disabled>Expired</button>
+                                    <button class="btn btn-danger" onclick="goTo(<?php echo htmlspecialchars($appointment['aid']); ?>)">Expired</button>
                                 <?php } ?>
                             </td>
                         </tr>

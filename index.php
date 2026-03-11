@@ -20,6 +20,7 @@ $role = $_SESSION['role'];
   <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/index.global.min.js'></script>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
@@ -123,6 +124,24 @@ $role = $_SESSION['role'];
     </div>
   </div>
 
+  <div class="modal" tabindex="-1" id="waiverModal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Please sign the waiver</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <?php include("waiver.php") ?>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 
   <script>
     const user_id = parseInt('<?= $user_id ?>')
@@ -159,7 +178,6 @@ $role = $_SESSION['role'];
           window.location.href = `http://localhost/salologan/customer_form.php?id=${user_id}`
         }
         isAppointedData = await isAppointedUser()
-        console.log(isAppointedData)
         if (isAppointedData.length > 0) {
           userAppointment = isAppointedData[0]
           selectContainer.innerHTML = ``
@@ -230,27 +248,32 @@ $role = $_SESSION['role'];
       } else {
         selectContainer.classList.toggle('d-none', true)
         removeAppointmentButton.classList.toggle("d-none", true)
+
       }
     })
 
+    // main FullCalendar
     const calendar = new FullCalendar.Calendar(calendarEl, {
       initialView: 'dayGridMonth',
       slotDuration: "00:05:00",
       slotMinTime: "08:00",
       slotMaxTime: "20:00",
       eventMaxStack: 1,
-      dayMaxEventRows: 3,
       allDaySlot: false,
       overlap: false,
       eventOrder: "-groupId",
-      eventOverlap: function(stillEvent, movingEvent) {
-        const exceptions = ["pending", "reschedule_pending_admin", "reschedule_pending", "cancelled", "expired"]
-        return (exceptions.includes(stillEvent.title) || (stillEvent.id == newAppointment.prevAid))
+      eventOverlap: true,
+      eventStartEditable: function(info) {
+        if (info.event.title === "expired") return true
+        console.log(info.event.title)
       },
       eventAllow: function(dropInfo, draggedEvent) {
-        return dropInfo.start >= new Date();
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        return dropInfo.start >= today;
       },
-      eventConstraint: 'businessHours',
+      // eventConstraint: 'businessHours',
       businessHours: bHours,
       slotLabelFormat: {
         hour: '2-digit',
@@ -303,7 +326,7 @@ $role = $_SESSION['role'];
       },
       events: async function(fetchInfo, successCallback, failureCallback) {
         try {
-          const response = await fetch(`http://localhost:5000/getAppointments?role=${role}`);
+          const response = await fetch(`http://localhost:5000/getAppointments?role=${role}&user_id=${user_id}`);
           const data = await response.json();
           successCallback(data);
         } catch (error) {
@@ -312,10 +335,13 @@ $role = $_SESSION['role'];
         }
       },
       eventDrop: function(info) {
-        if (isRescheduling) enableRaButton()
+        if (isRescheduling) enableReqAppointmentButton()
         newAppointment.date = info.event.startStr.split("T")[0]
         newAppointment.start = getFormattedTime(info.event.startStr)
         newAppointment.end = getFormattedTime(info.event.endStr)
+        if (role === "admin" && !isRescheduling) {
+          openAppointmentModal(info)
+        }
       },
       eventClick: function(info) {
         if (isRescheduling) return
@@ -323,7 +349,6 @@ $role = $_SESSION['role'];
           openAppointmentModal(info)
         } else {
           if (info.event.title === "reschedule_pending_admin") {
-            console.log(isAppointedData.map(item => item.aid).includes(info.event.id))
             openAdminRequestModal(info.event)
           }
         }
@@ -333,7 +358,7 @@ $role = $_SESSION['role'];
           if (info.date < new Date()) return
           if (role === 'user') {
             if (isRescheduling) {
-              selectRescheduleDate(info)
+              selectRescheduleDateAdmin(info)
             } else if (serviceEst.length > 0) {
               const totalEstimatedTime = serviceEst.reduce((x, y) => parseInt(x) + parseInt(y), 0);
               const startDate = new Date(info.dateStr);
@@ -342,11 +367,6 @@ $role = $_SESSION['role'];
                 alert("Set appointment within business hours");
                 return;
               }
-              if (hasOverlap(startDate, endDate)) {
-                alert("This time conflicts with an existing appointment.");
-                return;
-              }
-
               const oldEvent = calendar.getEvents()
               oldEvent.forEach((e, i) => {
                 if (e.title === "New Appointment") {
@@ -359,7 +379,8 @@ $role = $_SESSION['role'];
                 title: 'New Appointment',
                 start: startDate.toISOString(),
                 end: endDate.toISOString(),
-                editable: true
+                editable: true,
+                eventDurationEditable: false
               });
 
               newAppointment.date = startDate.toISOString().split("T")[0]
@@ -370,7 +391,13 @@ $role = $_SESSION['role'];
             }
           } else {
             if (isRescheduling) {
-              selectRescheduleDate(info)
+              const oldEvent = calendar.getEvents()
+              oldEvent.forEach((e, i) => {
+                if (e.title === "New Appointment") {
+                  e.remove();
+                }
+              });
+              selectRescheduleDateAdmin(info)
             }
           }
         } else {
@@ -379,15 +406,30 @@ $role = $_SESSION['role'];
       }
     });
 
+    function handleScheduleOrganize(info) {
+      return
+    }
+
     function getOverlap(targetEvent) {
+      const exceptions = [
+        "pending",
+        "reschedule_pending_admin",
+        "reschedule_pending",
+        "cancelled",
+        "expired",
+        "cancel_pending",
+        "cancel_pending_admin"
+      ];
+
       const allEvents = calendar.getEvents();
-      return allEvents.filter(event => {
+      const overlaps = allEvents.filter(event => {
         if (event.id === targetEvent.id) return false;
         return (
           event.start < targetEvent.end &&
-          event.end > targetEvent.start
+          event.end > targetEvent.start && !exceptions.includes(event.title)
         );
       });
+      return overlaps
     }
 
     function jumpToUserSchedule(date) {
@@ -407,8 +449,10 @@ $role = $_SESSION['role'];
         checkbox.dataset.time = service.estimated_time;
         checkbox.dataset.price = service.price;
         checkbox.addEventListener("change", (e) => {
-          if (!newAppointment) {
-            calendar.getEventById("newAppointment").remove()
+          const event = calendar.getEvents().find(e => e.title === "New Appointment");
+          console.log(event)
+          if (event) {
+            event.remove();
             newAppointment = {};
             addAppointment.disabled = true;
           }
@@ -428,7 +472,11 @@ $role = $_SESSION['role'];
 
         checkboxContainer.appendChild(checkbox);
         checkboxContainer.appendChild(label);
-        document.getElementById("checkboxContainer").appendChild(checkboxContainer);
+        if (isRescheduling) {
+          document.querySelector('.selectContainer').prepend(checkboxContainer)
+        } else {
+          document.getElementById("checkboxContainer").appendChild(checkboxContainer);
+        }
       });
     }
 
@@ -448,23 +496,8 @@ $role = $_SESSION['role'];
       newAppointment.user_id = user_id
       newAppointment.services = selectedServices
       newAppointment.note = document.getElementById('note').value.trim();
-      fetch('http://localhost:5000/requestAppointment', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            newAppointment
-          })
-        }).then(res => {
-          if (!res.ok) throw new Error('Network response was not ok');
-          return res.json();
-        }).then(data => {
-          console.log('Success:', data);
-        }).then(() => window.location.reload())
-        .catch(error => {
-          console.error('Error:', error);
-        });
+      sessionStorage.setItem("newAppointment", JSON.stringify(newAppointment));
+      window.location.href = `waiver.php?id=${user_id}`;
     }
 
     function getFormattedTime(time) {
@@ -476,16 +509,28 @@ $role = $_SESSION['role'];
       return `${hours}:${minutes}`;
     }
 
-    function hasOverlap(start, end) {
-      const exceptions = ["pending", "reschedule_pending_admin", "reschedule_pending", "cancelled", "expired", "cancel_pending", "cancel_pending_admin"]
-      return calendar.getEvents().some(event => {
-        return (
-          (start < new Date(event.end) && end > new Date(event.start) && !exceptions.includes(event.title))
-        );
-      });
-    }
+    // function hasOverlap(start, end) {
+    //   const exceptions = [
+    //     "pending",
+    //     "reschedule_pending_admin",
+    //     "reschedule_pending",
+    //     "cancelled",
+    //     "expired",
+    //     "cancel_pending",
+    //     "cancel_pending_admin"
+    //   ];
 
-    function enableRaButton() {
+    //   const overlappingEvents = calendar.getEvents().filter(event =>
+    //     start < new Date(event.end) &&
+    //     end > new Date(event.start) &&
+    //     !exceptions.includes(event.title)
+    //   );
+
+    //   return overlappingEvents.length >= 3;
+    // }
+    var prevEvent = null
+
+    function enableReqAppointmentButton() {
       const reasonInput = document.getElementById("reason").value.trim();
       const button = document.getElementById("RAbutton");
       button.disabled = (
@@ -503,16 +548,17 @@ $role = $_SESSION['role'];
       const button = document.getElementById("rescheduleButton")
       modalTitle.textContent = `${event.title}`
       modalTitle.classList.add("text-capitalize")
-      button.addEventListener("click", function() {
+      button.addEventListener("click", async function() {
         if (event) {
-          console.log(event)
           event.setProp('editable', true);
-          newAppointment.prevAid = id
+          prevEvent = id
           event.setProp('display', 'background');
           isRescheduling = true
           rescheduleAppointment(id)
         }
         modal.hide()
+        const services = await loadServices();
+        renderServices(services)
       })
       modal.show()
     }
@@ -523,7 +569,7 @@ $role = $_SESSION['role'];
         <div class="text-center"> 
         <h6>Reason:</h6>
             <div class="form-floating mb-2">
-              <textarea class="form-control" placeholder="Provide reason to notify the client" id="reason" oninput="enableRaButton()"></textarea>
+              <textarea class="form-control" placeholder="Provide reason to notify the client" id="reason" oninput="enableReqAppointmentButton()"></textarea>
               <label for="reason">Reason</label>
             </div>
           <button class="btn btn-secondary text-end" onclick="window.location.reload()"> Cancel </button> 
@@ -542,10 +588,6 @@ $role = $_SESSION['role'];
         alert("Set appointment within business hours");
         return;
       }
-      if (hasOverlap(startDate, endDate)) {
-        alert("This time conflicts with an existing appointment.");
-        return;
-      }
 
       const oldEvent = calendar.getEvents()
       oldEvent.forEach((e, i) => {
@@ -559,14 +601,47 @@ $role = $_SESSION['role'];
         title: 'New Appointment',
         start: startDate,
         end: endDate,
-        editable: true
       });
 
       newAppointment.date = startDate.toISOString().split("T")[0]
       newAppointment.start = getFormattedTime(startDate)
       newAppointment.end = getFormattedTime(endDate)
 
-      enableRaButton()
+      enableReqAppointmentButton()
+    }
+
+    function selectRescheduleDateAdmin(event) {
+      if (serviceEst.length > 0) {
+        const totalEstimatedTime = serviceEst.reduce((sum, val) => sum + Number(val), 0);
+        const startDate = new Date(event.dateStr);
+        const endDate = new Date(startDate.getTime() + totalEstimatedTime * 60000);
+        if (!withinBusinessHours(startDate, endDate)) {
+          alert("Set appointment within business hours");
+          return;
+        }
+
+        const oldEvent = calendar.getEvents()
+        oldEvent.forEach((e, i) => {
+          if (e.title === "New Appointment") {
+            e.remove();
+          }
+        });
+
+        calendar.addEvent({
+          id: prevEvent,
+          title: 'New Appointment',
+          start: startDate.toISOString(),
+          end: endDate.toISOString(),
+          editable: true,
+          eventDurationEditable: false
+        });
+
+        newAppointment.date = startDate.toISOString().split("T")[0]
+        newAppointment.start = getFormattedTime(startDate)
+        newAppointment.end = getFormattedTime(endDate)
+      }
+
+      enableReqAppointmentButton()
     }
 
     async function openAppointmentModal(info) {
@@ -655,11 +730,10 @@ $role = $_SESSION['role'];
       });
       modalBody.innerHTML = servicesHTML;
 
-      rescheduleByAdmin.addEventListener("click", function() {
+      rescheduleByAdmin.addEventListener("click", async function() {
         if (event) {
-          console.log(event)
           event.setProp('editable', true);
-          newAppointment.prevAid = info.event.id
+          prevEvent = info.event.id
           event.setProp('display', 'background');
           isRescheduling = true
           selectContainer.classList.toggle("d-none", false)
@@ -670,6 +744,8 @@ $role = $_SESSION['role'];
           rescheduleAppointment(info.event.id)
         }
         appointmentModal.hide()
+        const services = await loadServices();
+        renderServices(services)
       })
 
       removeAppointmentButton.addEventListener("click", function() {
@@ -735,7 +811,6 @@ $role = $_SESSION['role'];
       document.getElementById("cButton").addEventListener("click", function() {
         const reasonInput = document.getElementById("reason").value.trim();
         const response = fetch(`http://localhost:5000/cancelBooked?aid=${id}&reason=${reasonInput}&user_id=${user_id}`);
-        const reason = response.json();
         window.location.reload()
       })
     }
@@ -759,7 +834,6 @@ $role = $_SESSION['role'];
 
         <p><strong>Reason:</strong> ${reason.reason}</p>
       `
-      console.log(overlapId)
       const adminRequestButton = document.getElementById("adminRequestButton")
       adminRequestButton.addEventListener("click", async function() {
         approveAppointment(event.id, overlapId)
@@ -790,7 +864,6 @@ $role = $_SESSION['role'];
             role,
             aid,
             user_id,
-            overlapId
           })
         }).then(res => {
           if (!res.ok) throw new Error('Network response was not ok');
@@ -837,9 +910,11 @@ $role = $_SESSION['role'];
     }
 
     function rescheduleRequest(id) {
+      newAppointment.prevAid = prevEvent
       newAppointment.role = role
       newAppointment.reason = document.getElementById("reason").value
       newAppointment.user_id = user_id
+      newAppointment.services = selectedServices
       fetch('http://localhost:5000/rescheduleRequest', {
           method: 'POST',
           headers: {

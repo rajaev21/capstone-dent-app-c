@@ -17,6 +17,6 @@ if (mail($receiver, $subject, $body, $sender)) {
     header('location:../otp.php?response=Otp sent');
     exit();
 } else {
-    header('location:../otp.php?respnose=Please log in again');
+    header('location:../otp.php?response=Please log in again');
     exit();
 }

@@ -14,6 +14,7 @@ if (!$_GET['id']) {
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
   <!-- BS icon -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     #waiver {
       position: relative;
@@ -58,7 +59,6 @@ if (!$_GET['id']) {
         $relationship = $row['relationship'];
         $emergencyContactNumber = $row['emergencyContactNumber'];
         $username = $row['username'];
-        $signature = $row['signature'];
         $isBeingTreated = $row['isBeingTreated'];
         $isHospitalized = $row['isHospitalized'];
         $isAllergy = $row['isAllergy'];
@@ -66,6 +66,7 @@ if (!$_GET['id']) {
         $isPregnant = $row['isPregnant'];
         $isBreastfeeding = $row['isBreastfeeding'];
         $additionalInformation = $row['additionalInformation'];
+        $last_updated = $row['last_updated'];
 
         if (!empty($row['medications'])) {
           $conditions = explode(',', $row['medications']);
@@ -83,8 +84,80 @@ if (!$_GET['id']) {
   } ?>
 
   <!-- Form Starts here -->
+
+
   <div class="container">
     <h3>Please Fill the form before proceeding </h3>
+    <p> Last Updated:
+      <?php
+      $date = new DateTime($last_updated);
+      echo $date->format("F d, Y h:i A");
+      ?>
+    </p>
+
+    <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasScrolling" aria-controls="offcanvasScrolling">Check Form Submitted</button>
+
+    <div class="offcanvas offcanvas-start" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1" id="offcanvasScrolling" aria-labelledby="offcanvasScrollingLabel">
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="offcanvasScrollingLabel">Form Submitted</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+      <div class="offcanvas-body">
+        <div class="container">
+          <?php
+          $signatures = file_get_contents('http://localhost:5000/getSignatures?id=' . $_GET['id']);
+          $signatures = json_decode($signatures, true);
+          ?>
+          <?php if (count($signatures) > 0): ?>
+            <div style="max-height: 300px; overflow-y: auto; padding-right: 5px;">
+              <?php foreach ($signatures as $signature):
+                $date = new DateTime($signature['created_at']);
+                $formattedDate = $date->format("F d, Y h:i A");
+              ?>
+                <button class="btn btn-primary mb-2 w-100"
+                  onclick="openWaiverModal('<?= urlencode($signature['signature']) ?>', '<?= $formattedDate ?>')">
+                  <?= $formattedDate ?>
+                </button>
+              <?php endforeach; ?>
+            </div>
+          <?php else: ?>
+            <p>No signatures found.</p>
+          <?php endif; ?>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel"></h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="container card p-5 my-3" id="waiver">
+              <p class="lh-lg">
+                I understand that the information on my account profile was completed correctly and to the best
+                of my knowledge; and thus i assume all risks arising from or connected with any
+                ommission or interpretation of the same. I also understand that it is my responsibility
+                to inform Salapantan Dental Clinic of any charges in the information that i have provided.
+                I voluntarily entrust all my dental treatment to Salapantan Dental Clinic and confirm that
+                I am consenting to all their dental procedures and clinical recommendations, being as I am
+                at all times provided by Salapantan Dental Clinic with sufficient information to give
+                my intelligent consent to the same. Having given my voluntary and intelligent consent
+                to the same, I hold Salapantan Dental Clinic without responsible for any untoward claim,
+                damage or liability in connection with such procedures and recommendations.
+              </p>
+              <div class="p mt-5">Signature here:<img id="canvasimg"></div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <div class="btn btn-secondary" id="closeButtonModal" data-bs-dismiss="modal">Close</div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <form action="./api/customerFormAPI.php?" method="GET">
       <div class="row">
@@ -509,46 +582,7 @@ if (!$_GET['id']) {
           </div>
         </div>
 
-        <div class="container <?= $_SESSION['role'] == "admin" ? "d-none" : ""; ?>">
-          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
-            Click here to sign
-          </button>
 
-          <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h1 class="modal-title fs-5" id="exampleModalLabel">Signature here</h1>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                  <canvas id="can" width="460" height="400" style="border:2px solid;"></canvas>
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" id="closeButtonModal" data-bs-dismiss="modal">Close</button>
-                  <button type="button" class="btn btn-primary" onclick="save()">Save changes</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-
-        <div class="container card p-5 my-3" id="waiver">
-          <p class="lh-lg">
-            I understand that the above information was completed correctly and to the best
-            of my knowledge; and thus i assume all risks arising from or connected with any
-            ommission or interpretation of the same. I also understand that it is my responsibility
-            to inform Salapantan Dental Clinic of any charges in the information that i have provided.
-            I voluntarily entrust all my dental treatment to Salapantan Dental Clinic and confirm that
-            I am consenting to all their dental procedures and clinical recommendations, being as I am
-            at all times provided by Salapantan Dental Clinic with sufficient information to give
-            my intelligent consent to the same. Having given my voluntary and intelligent consent
-            to the same, I hold Salapantan Dental Clinic without responsible for any untoward claim,
-            damage or liability in connection with such procedures and recommendations.
-          </p>
-          <div class="p mt-5">Name here:<img id="canvasimg" src="<?= $signature ?>"></div>
-        </div>
 
         <h3>Privacy & Policy Agreement</h3>
         <p>
@@ -637,13 +671,26 @@ if (!$_GET['id']) {
         </div>
       </div>
 
-      <div class="row p-5"><input class="btn btn-primary  <?= $_SESSION['role'] == "admin" ? "d-none" : ""; ?>" type="submit" value="Submit" name="appoint" id="submitButton" disabled></div>
+      <div class="row p-5"><input class="btn btn-primary <?= $_SESSION['role'] == "admin" ? "d-none" : ""; ?>" type="submit" value="Submit" name="appoint" id="submitButton" disabled></div>
     </form>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 
   <script>
+    function openWaiverModal(signature, date) {
+      const modal = new bootstrap.Modal(document.getElementById("exampleModal"));
+
+      const canvasImg = document.getElementById("canvasimg");
+      const modalLabel = document.getElementById("exampleModalLabel");
+      console.log(signature)
+      canvasImg.src = decodeURIComponent(signature);
+
+      modalLabel.textContent = date;
+
+      modal.show();
+    }
+
     function genderChange(e) {
       const forFemale = document.getElementById("forFemale");
       if (e.value === "female") {
@@ -653,113 +700,10 @@ if (!$_GET['id']) {
       }
     }
 
-    var customerID = `<?= $_GET['id']; ?>`
-    var canvas, ctx, flag = false,
-      prevX = 0,
-      currX = 0,
-      prevY = 0,
-      currY = 0,
-      dot_flag = false;
-
-    var x = "black",
-      y = 2;
-
-    function init() {
-      canvas = document.getElementById('can');
-      ctx = canvas.getContext("2d");
-      w = canvas.width;
-      h = canvas.height;
-
-      canvas.addEventListener("mousemove", e => findxy('move', e), false);
-      canvas.addEventListener("mousedown", e => findxy('down', e), false);
-      canvas.addEventListener("mouseup", e => findxy('up', e), false);
-      canvas.addEventListener("mouseout", e => findxy('out', e), false);
-    }
-
-    document.addEventListener('shown.bs.modal', function(event) {
-      if (event.target.id === 'exampleModal') {
-        init();
-      }
-    });
-    document.addEventListener('hidden.bs.modal', function(event) {
-      if (event.target.id === 'exampleModal') {
-        erase();
-      }
-    });
-
-    function draw() {
-      ctx.beginPath();
-      ctx.moveTo(prevX, prevY);
-      ctx.lineTo(currX, currY);
-      ctx.strokeStyle = x;
-      ctx.lineWidth = y;
-      ctx.stroke();
-      ctx.closePath();
-    }
-
-    function save() {
-      const dataURL = canvas.toDataURL("image/png");
-
-      fetch("http://localhost:5000/setSignature", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            signature: dataURL,
-            user_id: customerID
-          })
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            document.getElementById("canvasimg").src = dataURL;
-            checkAgreement()
-            document.getElementById("closeButtonModal").click();
-          } else {
-            console.error("Save failed:", data.message);
-          }
-        })
-        .catch(err => console.error(err));
-    }
-
-    function erase() {
-      ctx.clearRect(0, 0, w, h);
-    }
-
-    function findxy(res, e) {
-      const rect = canvas.getBoundingClientRect();
-      if (res == 'down') {
-        prevX = currX;
-        prevY = currY;
-        currX = e.clientX - rect.left;
-        currY = e.clientY - rect.top;
-
-        flag = true;
-        dot_flag = true;
-        if (dot_flag) {
-          ctx.beginPath();
-          ctx.fillStyle = x;
-          ctx.fillRect(currX, currY, 2, 2);
-          ctx.closePath();
-          dot_flag = false;
-        }
-      }
-      if (res == 'up' || res == "out") flag = false;
-      if (res == 'move' && flag) {
-        prevX = currX;
-        prevY = currY;
-        currX = e.clientX - rect.left;
-        currY = e.clientY - rect.top;
-        draw();
-      }
-    }
-
     function checkAgreement() {
       const canvasimg = document.getElementById("canvasimg")
       const policyID = document.getElementById("policyID");
-      const imgsrc = canvasimg.getAttribute("src")
-      if (policyID.checked && imgsrc) {
+      if (policyID.checked) {
         document.getElementById("submitButton").disabled = false;
       } else {
         document.getElementById("submitButton").disabled = true;

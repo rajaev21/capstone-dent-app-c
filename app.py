@@ -1,12 +1,13 @@
 from flask import Flask, request, jsonify
-from datetime import date, datetime
+from datetime import date
 from flask_cors import CORS
+from flask_mail import Mail, Message
 import mysql.connector
-import logging
-import hashlib
 import json
 import base64
 import os
+import time
+
 
 app = Flask(__name__)
 CORS(app)
@@ -18,40 +19,44 @@ db_config = {
     "database": "dentapp",
 }
 
+app.config["MAIL_SERVER"] = "smtp.gmail.com"
+app.config["MAIL_PORT"] = 587
+app.config["MAIL_USE_TLS"] = True
+app.config["MAIL_USERNAME"] = "rajaevberame21@gmail.com"
+app.config["MAIL_PASSWORD"] = "crjc pyte giau zppp"
+app.config["MAIL_DEFAULT_SENDER"] = "rajaevberame21@gmail.com"
+mail = Mail(app)
 
-# @app.route("/getWaiting", methods=["GET"])
-# def getWaiting():
-#     conn = mysql.connector.connect(**db_config)
-#     cursor = conn.cursor(dictionary=True)
 
-#     date = request.args.get("date")
-#     start = request.args.get("start")
+def sendMailnotif(sub, aid, body):
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute(
+        "select email from user where id in (select user_id from appointment_backup where aid = %s)",
+        (aid,),
+    )
+    user = cursor.fetchone()
+    cursor.close()
+    sendto = user["email"]
+    print(sendto)
+    msg = Message(subject=sub, recipients=[sendto], body=body)
+    mail.send(msg)
 
-#     query = """SELECT distinct
-#             ab.aid as aid,
-#             ab.user_id as user_id,
-#             concat(cd.firstName, ' ' , cd.lastName) as name,
-#             cd.age as age,
-#             cd.gender as gender,
-#             cd.contactNumber as number,
-#             cd.address as address,
-#             n.reason as reason,
-#             n.message as message
 
-#             FROM appointment_backup ab
-#             join customer_detail cd on cd.user = ab.user_id
-#             join notification n on n.aid = ab.aid
-#             WHERE ab.date = %s
-#             AND ab.appointment_start = %s
-#             AND ab.status IN (1, 6)
-#             """
-#     cursor.execute(query, (date, start))
-#     result = cursor.fetchall()
+@app.route("/getSignatures", methods=["GET"])
+def getSignatures():
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
 
-#     cursor.close()
-#     conn.close()
+    id = request.args.get("id")
 
-#     return result
+    query = "SELECT * FROM signature WHERE user_id = %s"
+    cursor.execute(query, (id,))
+    result = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+    return result
 
 
 @app.route("/setSignature", methods=["POST"])
@@ -70,12 +75,12 @@ def setSignature():
     img_data = base64.b64decode(signature)
     folder = "signatures"
     os.makedirs(folder, exist_ok=True)
-    file_path = os.path.join(folder, f"{user_id}.png")
+    file_path = os.path.join(folder, f"{user_id}_{int(time.time())}.png")
 
     with open(file_path, "wb") as f:
         f.write(img_data)
 
-    query = "UPDATE customer_detail SET signature = %s WHERE user = %s"
+    query = "INSERT INTO signature (signature, user_id) VALUES (%s ,%s)"
     cursor.execute(
         query,
         (
@@ -88,22 +93,6 @@ def setSignature():
     conn.close()
 
     return jsonify({"success": True, "file_path": file_path})
-
-
-# @app.route("/changeStatusaid", methods=["GET"])
-# def changeStatusaid():
-#     conn = mysql.connector.connect(**db_config)
-#     cursor = conn.cursor(dictionary=True)
-#     aid = request.args.get("aid")
-
-#     query = "UPDATE appointment_backup SET status = 6 WHERE aid = %s"
-#     cursor.execute(query, (aid,))
-#     result = cursor.rowcount
-#     conn.commit()
-#     cursor.close()
-#     conn.close()
-
-#     return {"message": "success"}
 
 
 @app.route("/cancelBooked", methods=["GET"])
@@ -146,58 +135,10 @@ def cancelBooked():
         return {"error": str(e)}, 500
 
     finally:
+        print("finally")
         cursor.close()
         conn.close()
         return {"response": "message"}
-
-
-# @app.route("/rCancelApproval", methods=["GET"])
-# def rCancelApproval():
-#     conn = mysql.connector.connect(**db_config)
-#     cursor = conn.cursor(dictionary=True)
-#     aid = request.args.get("aid")
-#     admin_id = request.args.get("admin_id")
-#     user_id = request.args.get("user_id")
-#     answer = request.args.get("answer")
-
-#     if answer == "Yes":
-
-#         result = cursor.rowcount
-
-#         notificationQuery = "insert into notification ( `aid`, `message`, `sentBy`, `sentTo`) values (%s, %s, %s, %s)"
-#         cursor.execute(
-#             notificationQuery, (aid, "Cancellation Request Approved", admin_id, user_id)
-#         )
-#         conn.commit()
-#     else:
-#         query = "UPDATE appointment_backup SET status = 2 WHERE aid = %s"
-#         cursor.execute(query, (aid,))
-#         result = cursor.rowcount
-
-#         notificationQuery = "insert into notification ( `aid`, `message`, `sentBy`, `sentTo`) values (%s, %s, %s, %s)"
-#         cursor.execute(
-#             notificationQuery, (aid, "Cancellation Request Denied", admin_id, user_id)
-#         )
-#         conn.commit()
-
-#     cursor.close()
-#     conn.close()
-#     return "success"
-
-
-# @app.route("/changeStatus", methods=["GET"])
-# def changeStatus():
-#     conn = mysql.connector.connect(**db_config)
-#     cursor = conn.cursor(dictionary=True)
-#     aid = request.args.get("aid")
-#     query = "UPDATE appointment_backup SET status = 5 WHERE aid = %s"
-#     cursor.execute(query, (aid,))
-#     result = cursor.rowcount
-#     conn.commit()
-
-#     cursor.close()
-#     conn.close()
-#     return "success"
 
 
 @app.route("/getNextAppointment", methods=["GET"])
@@ -263,7 +204,7 @@ def getCustomerProfile():
         LEFT JOIN medication m ON m.user = cd.user
         LEFT JOIN taken t ON t.user = cd.user
         WHERE cd.user = %s
-        GROUP BY cd.user;
+        GROUP BY cd.user
         """
     cursor.execute(query, (user_id,))
     result = cursor.fetchall()
@@ -358,6 +299,17 @@ def finishAppointment():
     cursor.execute(newQuery, (id, message, reason, admin_id, user_id))
     conn.commit()
     notif = cursor.lastrowid
+    body = f"""Hello,
+
+    Your appointment has been updated.
+
+    Reason:
+    {reason}
+
+    Thank you,
+    Clinic Admin
+        """
+    sendMailnotif(message, id, body)
 
     cursor.close()
     conn.close()
@@ -405,107 +357,97 @@ def cancelAppointments():
     return "success"
 
 
-@app.route("/getCustomerServices", methods=["GET"])
-def getCustomerServices():
-
+@app.route("/getBilling", methods=["GET"])
+def getBilling():
     conn = mysql.connector.connect(**db_config)
     cursor = conn.cursor(dictionary=True)
 
-    appointment_id = request.args.get("appointment_id")
+    aid = request.args.get("aid")
+    query = "select s.*, st.service_type as service_type from service s join service_type st on s.service_type = st.id where s.appointment_id = %s"
+    cursor.execute(query, (aid,))
+    result = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    print(result)
+    return result
+
+
+@app.route("/deleteBilling", methods=["POST"])
+def deleteBilling():
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+
+    data = request.get_json()
+    service_id = data.get("id")
+
+    query = "DELETE FROM service WHERE id = %s"
+    cursor.execute(query, (service_id,))
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+    return {"message": "success"}
+
+
+@app.route("/addBilling", methods=["POST"])
+def addBilling():
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+
+    data = request.get_json()
+    aid = data.get("aid")
+    user = data.get("user")
+
     query = """
-        SELECT DISTINCT
-        st.service_type AS serviceType,
-        st.price AS servicePrice
-        FROM service s
-        JOIN service_type st ON s.service_type = st.id
-        WHERE s.appointment_id = %s
-        """
-    cursor.execute(query, (appointment_id,))
-    result = cursor.fetchall()
-
+        INSERT INTO service 
+        (user_id, appointment_id, remarks, service_type, dentist, total_payment, partial_payment, balance)
+        VALUES (%s, %s, '', 1, '',  0, 0, 0)
+    """
+    cursor.execute(query, (user,aid,))
+    conn.commit()
+    new_id = cursor.lastrowid
     cursor.close()
     conn.close()
-    return result
+
+    return {"status": "success", "id": new_id}
 
 
-@app.route("/getDentist", methods=["GET"])
-def getDentist():
+@app.route("/saveBilling", methods=["POST"])
+def saveBilling():
     conn = mysql.connector.connect(**db_config)
     cursor = conn.cursor(dictionary=True)
 
-    aid = request.args.get("aid")
-    query = "select * from dentist where aid = %s"
-    cursor.execute(query, (aid,))
-    result = cursor.fetchall()
-
-    cursor.close()
-    conn.close()
-    return result
-
-
-@app.route("/getPayments", methods=["GET"])
-def getPayments():
-    conn = mysql.connector.connect(**db_config)
-    cursor = conn.cursor(dictionary=True)
-
-    aid = request.args.get("aid")
-    query = "select * from payment where aid = %s"
-    cursor.execute(query, (aid,))
-    result = cursor.fetchall()
-
-    cursor.close()
-    conn.close()
-    return result
-
-
-@app.route("/addPayment", methods=["POST"])
-def addPayment():
-    conn = mysql.connector.connect(**db_config)
-    cursor = conn.cursor(dictionary=True)
     data = request.get_json()
-    payment = data.get("payment")
-    aid = data.get("aid")
-    query = "insert into payment ( payment, aid ) values ( %s, %s )"
-    cursor.execute(query, (payment, aid))
+    aid = data.get("id")
+    billings = data.get("billings")
+    query = """
+        UPDATE service
+        SET remarks = %s,
+            service_type = %s,
+            dentist = %s,
+            total_payment = %s,
+            partial_payment = %s,
+            balance = %s
+        WHERE id = %s
+    """
+
+    cursor.execute(
+        query,
+        (
+            billings[0],
+            billings[1],
+            billings[2],
+            billings[3],
+            billings[4],
+            billings[5],
+            aid,
+        ),
+    )
 
     conn.commit()
     cursor.close()
     conn.close()
-    return {"message": "Success"}
-
-
-@app.route("/addDentist", methods=["POST"])
-def addDentist():
-    conn = mysql.connector.connect(**db_config)
-    cursor = conn.cursor(dictionary=True)
-    data = request.get_json()
-    dentist = data.get("dentist")
-    aid = data.get("aid")
-    query = "insert into dentist ( dentist, aid ) values ( %s, %s )"
-    cursor.execute(query, (dentist, aid))
-
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return {"message": "Success"}
-
-
-@app.route("/additionalServices", methods=["POST"])
-def additionalServices():
-    conn = mysql.connector.connect(**db_config)
-    cursor = conn.cursor(dictionary=True)
-    data = request.get_json()
-    additionalServices = data.get("additionalServices")
-    appointment_id = data.get("aid")
-    user_id = data.get("user_id")
-
-    query = "insert into service (user_id, appointment_id, service_type) values (%s, %s, %s)"
-    cursor.execute(query, (user_id, appointment_id, additionalServices))
-    conn.commit()
-
-    cursor.close()
-    conn.close()
-    return {"message": "Success"}
+    return {"status": "success"}, 200
 
 
 @app.route("/getServices", methods=["GET"])
@@ -541,22 +483,23 @@ def getAppointedCustomer():
     aid = request.args.get("aid")
 
     query = """
-    SELECT
-    cd.*,
-    ab.aid as aid,
-    ab.status as status,
-    DATE(cd.birthDay) AS birthDay,
-    u.email AS email,
-    GROUP_CONCAT(DISTINCT m.meds) AS medications,
-    GROUP_CONCAT(DISTINCT t.taken) AS taken_list
-
-    FROM appointment_backup ab
-    join customer_detail cd ON ab.user_id = cd.user
-    join user u ON ab.user_id = u.id
-    join taken t on ab.user_id = t.user
-    join medication m on ab.user_id = m.user
-    WHERE ab.aid = %s limit 1
-    """
+        SELECT
+        cd.*,
+        ab.aid AS aid,
+        ab.status AS status,
+        DATE(cd.birthDay) AS birthDay,
+        u.email AS email,
+        IFNULL(GROUP_CONCAT(DISTINCT m.meds), '') AS medications,
+        IFNULL(GROUP_CONCAT(DISTINCT t.taken), '') AS taken_list
+        FROM appointment_backup ab
+        JOIN customer_detail cd ON ab.user_id = cd.user
+        JOIN user u ON ab.user_id = u.id
+        LEFT JOIN taken t ON ab.user_id = t.user
+        LEFT JOIN medication m ON ab.user_id = m.user
+        WHERE ab.aid = %s
+        GROUP BY ab.user_id
+        LIMIT 1
+        """
 
     cursor.execute(query, (aid,))
     result = cursor.fetchall()
@@ -622,35 +565,37 @@ def rejectAppointment():
     return {"data": "success"}
 
 
-@app.route("/getComplaints", methods=["GET"])
-def getComplaints():
+@app.route("/declineCancellation", methods=["GET"])
+def declineCancellation():
     conn = mysql.connector.connect(**db_config)
     cursor = conn.cursor(dictionary=True)
 
     aid = request.args.get("aid")
-
-    cursor.execute("select * from complaints where aid = %s", (aid,))
-
-    result = cursor.fetchall()
+    user_id = request.args.get("user_id")
+    cursor.execute("update appointment_backup set status = 2 where aid = %s", (aid,))
+    cursor.execute(
+        "insert into `notification`(`aid`, `message`, `sentBy`,`sentTo` ) select %s ,%s, %s, user_id from appointment_backup where aid = %s",
+        (aid, "Appointment Cancellation Declined", user_id, aid),
+    )
+    conn.commit()
     cursor.close()
     conn.close()
 
-    return result
+    return {"data": "success"}
 
 
-@app.route("/saveComplaints", methods=["POST"])
-def saveComplaints():
+@app.route("/approveCancellation", methods=["GET"])
+def approveCancellation():
     conn = mysql.connector.connect(**db_config)
     cursor = conn.cursor(dictionary=True)
 
-    data = request.get_json()
-    aid = data.get("aid")
-    complaints = data.get("complaints")
+    aid = request.args.get("aid")
+    user_id = request.args.get("user_id")
+    cursor.execute("update appointment_backup set status = 4 where aid = %s", (aid,))
     cursor.execute(
-        "insert into complaints (`complaint`, `aid` ) values (%s, %s) ",
-        (complaints, aid),
+        "insert into `notification`(`aid`, `message`, `sentBy`,`sentTo` ) select %s ,%s, %s, user_id from appointment_backup where aid = %s",
+        (aid, "Appointment Cancellation Approved", user_id, aid),
     )
-
     conn.commit()
     cursor.close()
     conn.close()
@@ -664,6 +609,7 @@ def rescheduleRequest():
     cursor = conn.cursor(dictionary=True)
     data = request.get_json()
     appointment = data.get("newAppointment")
+    print(appointment)
     try:
         conn.start_transaction()
         cursor.execute(
@@ -695,38 +641,29 @@ def rescheduleRequest():
             inserted_id = cursor.lastrowid
             if inserted_id:
                 cursor.execute(
-                    """insert into service (user_id, appointment_id, service_type)
-                    select %s, %s, service_type from service where appointment_id = %s""",
-                    (
-                        appointment["user_id"],
-                        inserted_id,
-                        appointment["prevAid"],
-                    ),
-                )
-                cursor.execute(
-                    """insert into payment (aid, payment)
-                    select %s, payment from payment where aid = %s""",
+                    """insert into service (user_id, appointment_id, remarks, service_type, dentist, total_payment,partial_payment, balance)
+                    select user_id, %s, remarks, service_type, dentist, total_payment,partial_payment, balance from service where appointment_id = %s""",
                     (
                         inserted_id,
                         appointment["prevAid"],
                     ),
                 )
-                cursor.execute(
-                    """insert into complaints (aid, complaint)
-                    select %s, complaint from complaints where aid = %s""",
-                    (
-                        inserted_id,
-                        appointment["prevAid"],
-                    ),
-                )
-                cursor.execute(
-                    """insert into dentist (aid, dentist)
-                    select %s, dentist from dentist where aid = %s""",
-                    (
-                        inserted_id,
-                        appointment["prevAid"],
-                    ),
-                )
+                services = appointment["services"]
+                print(appointment['user_id'])
+                for service in services:
+                    cursor.execute(
+                        """insert into service (user_id, appointment_id, remarks, service_type, dentist, total_payment,partial_payment, balance) values (%s,%s,%s,%s,%s,%s,%s,%s)""",
+                        (
+                            appointment["user_id"],
+                            inserted_id,
+                            "",
+                            service,
+                            "",
+                            0,
+                            0,
+                            0,
+                        ),
+                    )
             cursor.execute(
                 "insert into `notification`(`aid`, `message`, `reason`, `sentBy`,`sentTo` ) select %s ,%s, %s, %s, id from user where role = 'admin'",
                 (
@@ -753,38 +690,28 @@ def rescheduleRequest():
             inserted_id = cursor.lastrowid
             if inserted_id:
                 cursor.execute(
-                    """insert into service (user_id, appointment_id, service_type)
-                    select %s, %s, service_type from service where appointment_id = %s""",
-                    (
-                        result[0]["user_id"],
-                        inserted_id,
-                        appointment["prevAid"],
-                    ),
-                )
-                cursor.execute(
-                    """insert into payment (aid, payment)
-                    select %s, payment from payment where aid = %s""",
+                    """insert into service (user_id, appointment_id, remarks, service_type, dentist, total_payment,partial_payment, balance)
+                    select user_id, %s, remarks, service_type, dentist, total_payment,partial_payment, balance from service where appointment_id = %s""",
                     (
                         inserted_id,
                         appointment["prevAid"],
                     ),
                 )
-                cursor.execute(
-                    """insert into complaints (aid, complaint)
-                    select %s, complaint from complaints where aid = %s""",
-                    (
-                        inserted_id,
-                        appointment["prevAid"],
-                    ),
-                )
-                cursor.execute(
-                    """insert into dentist (aid, dentist)
-                    select %s, dentist from dentist where aid = %s""",
-                    (
-                        inserted_id,
-                        appointment["prevAid"],
-                    ),
-                )
+                services = appointment["services"]
+                for service in services:
+                    cursor.execute(
+                        """insert into service (user_id, appointment_id, remarks, service_type, dentist, total_payment,partial_payment, balance) values (%s,%s,%s,%s,%s,%s,%s,%s)""",
+                        (
+                            appointment["user_id"],
+                            inserted_id,
+                            "",
+                            service,
+                            "",
+                            0,
+                            0,
+                            0,
+                        ),
+                    )
 
             cursor.execute(
                 "insert into `notification`(`aid`, `message`,  `reason`, `sentBy`,`sentTo` ) select %s, %s, %s, %s, user_id from appointment_backup where aid = %s",
@@ -796,6 +723,27 @@ def rescheduleRequest():
                     appointment["prevAid"],
                 ),
             )
+            notif = cursor.lastrowid
+
+            cursor.execute("SELECT sentTo FROM notification WHERE id = %s", (notif,))
+            result = cursor.fetchone()
+
+            body = f"""Hello,
+
+            Your appointment has been updated.
+
+            Reason:
+            {appointment["reason"]}
+
+            Thank you,
+            Clinic Admin
+            """
+
+            message = "Reschedule Update"
+
+            sendMailnotif(message, result["sentTo"], body)
+
+            print(result["sentTo"])
 
         conn.commit()
     except Exception as e:
@@ -817,30 +765,9 @@ def approveAppointment():
     aid = data.get("aid")
     user_id = data.get("user_id")
     role = data.get("role")
-    overlapId = data.get("overlapId") or []
 
     try:
         conn.start_transaction()
-        if len(overlapId) > 0:
-            for oid in overlapId:
-                cursor.execute(
-                    "UPDATE appointment_backup SET status = 4 WHERE aid = %s", (oid,)
-                )
-                cursor.execute(
-                    """
-                    INSERT INTO notification (`aid`, `message`, `reason`, `sentBy`, `sentTo`)
-                    SELECT %s, %s, %s, %s, user_id
-                    FROM appointment_backup
-                    WHERE aid = %s
-                    """,
-                    (
-                        oid,
-                        "Appointment Cancelled",
-                        "Other appointment has been approved",
-                        user_id,
-                        oid,
-                    ),
-                )
         cursor.execute("select * from appointment_backup where aid = %s", (aid,))
         result = cursor.fetchall()
 
@@ -878,6 +805,19 @@ def approveAppointment():
                 (aid, "Appointment Approved", user_id),
             )
 
+        mailSubject = "Appointment Approval Notice"
+        mailBody = f"""Dear Valued Client,
+
+        Your appointment has been approved and confirmed for the scheduled time. Please ensure that you arrive promptly at the exact time indicated.
+
+        We kindly ask that you avoid being late to help us maintain an efficient schedule for all clients.
+
+        Thank you, and we look forward to serving you.
+
+        Sincerely,
+        DentApp
+            """
+        sendMailnotif(mailSubject, aid, mailBody)
         conn.commit()
 
     except Exception as e:
@@ -913,7 +853,7 @@ def getAppointmentServices():
     return jsonify(result)
 
 
-@app.route("/getAppointments", methods=["GET"])
+@app.route("/getAppointments", methods=["GET"])  #
 def getAppointment():
     conn = mysql.connector.connect(**db_config)
     cursor = conn.cursor(dictionary=True)
@@ -925,8 +865,8 @@ def getAppointment():
     conn.commit()
 
     if role == "user":
-        cursor.execute(
-            """select
+        print(user_id)
+        query = """select
         ab.aid as id,
         concat('Appointments ', ab.aid) AS groupId,
         ast.status_name AS title,
@@ -934,9 +874,9 @@ def getAppointment():
         CONCAT(ab.date, 'T', ab.appointment_end) AS end
         FROM appointment_backup ab
         right join appointment_status ast ON ast.id = ab.status
-        WHERE ab.status NOT IN (4, 5)
+        WHERE user_id = %s
         """
-        )
+        cursor.execute(query, (user_id,))
     else:
         cursor.execute(
             """select
