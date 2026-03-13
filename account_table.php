@@ -41,7 +41,7 @@
                 <tr>
                   <td><?= $row['customer_detail'][0]['firstName'] . " " . $row['customer_detail'][0]['middleName'] . " " . $row['customer_detail'][0]['lastName'] ?></td>
                   <td>
-                    <a class="btn btn-secondary" href="http://localhost/salologan/customer_form.php?id=<?= $row['user']['id'] ?>">
+                    <a class="btn btn-secondary" href="customer_form.php?id=<?= $row['user']['id'] ?>">
                       Show Details
                     </a>
                   </td>

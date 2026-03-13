@@ -7,6 +7,7 @@ import json
 import base64
 import os
 import time
+import random
 
 
 app = Flask(__name__)
@@ -356,6 +357,36 @@ def cancelAppointments():
     conn.close()
     return "success"
 
+@app.route("/saveEditedEvents", methods=["POST"])
+def saveEditedEvents():
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+
+    data = request.get_json()
+    events = data.get("editedEventFinal")
+
+    query = """
+    UPDATE appointment_backup
+    SET appointment_start = %s,
+        appointment_end = %s,
+        date = %s
+    WHERE aid = %s
+    """
+
+    for event in events:
+        start = event['start']
+        end = event['end']
+        date = event['date']
+        id = event['id']
+
+        cursor.execute(query, (start, end, date, id))
+
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    return {"message": "success"}
 
 @app.route("/getBilling", methods=["GET"])
 def getBilling():
@@ -1087,20 +1118,31 @@ def checkEmail():
     return result
 
 
+
 @app.route("/login", methods=["GET"])
 def login():
     conn = mysql.connector.connect(**db_config)
     cursor = conn.cursor(dictionary=True)
     username = request.args.get("username")
 
-    query = """
-    SELECT * FROM user WHERE username=%s
-    """
+    query = "SELECT * FROM user WHERE username=%s"
     cursor.execute(query, (username,))
     result = cursor.fetchall()
 
-    if result is None:
+    if not result:
+        cursor.close()
+        conn.close()
         return "User not found"
+
+    number = "123456789"
+    otp = "".join(random.choice(number) for _ in range(6))
+
+    result[0]['otp'] = otp
+    sub = "OTP"
+    sendto = result[0]['email']
+    body = f"OTP: {otp}"
+    msg = Message(subject=sub, recipients=[sendto], body=body)
+    mail.send(msg)
 
     cursor.close()
     conn.close()

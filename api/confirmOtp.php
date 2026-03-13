@@ -2,7 +2,7 @@
 session_start();
 date_default_timezone_set('Asia/Manila');
 
-if (isset($_POST['confirmOtp'])) {
+if (isset($_SESSION['otp'])) {
     $userOtp = $_POST['otp'];
     $emailOtp = $_SESSION['otp'];
     $username = $_SESSION['username'];

@@ -44,6 +44,11 @@ $role = $_SESSION['role'];
       </div>
     </div>
     <div class="container">
+      <?php if ($role == "admin"): ?>
+        <div class="container mb-3 d-flex justify-content-end">
+          <button class="btn btn-primary" onclick="handleEditSchedule(this)"><i class="bi bi-pen"></i></button>
+        </div>
+      <?php endif; ?>
       <div class="container" id="calendar"></div>
     </div>
   </div>
@@ -174,8 +179,9 @@ $role = $_SESSION['role'];
     document.addEventListener("DOMContentLoaded", async function() {
       if (role === 'user') {
         isValidated = await isValidated()
+        console.log(isValidated[0].isValidated)
         if (isValidated[0].isValidated == 0) {
-          window.location.href = `http://localhost/salologan/customer_form.php?id=${user_id}`
+          window.location.href = `customer_form.php?id=${user_id}`
         }
         isAppointedData = await isAppointedUser()
         if (isAppointedData.length > 0) {
@@ -252,6 +258,67 @@ $role = $_SESSION['role'];
       }
     })
 
+    var isEditing = false
+    var editedEvents = []
+    var editedEventFinal = []
+
+    function handleEditSchedule(element) {
+      const icon = element.querySelector("i")
+      if (!isEditing) {
+        isEditing = true
+        calendar.setOption('editable', true);
+        element.className = "btn btn-success"
+        icon.className = "bi bi-check"
+      } else {
+        handleEditedEventsSave()
+        calendar.setOption('editable', true);
+        isEditing = false
+        element.className = "btn btn-primary"
+        icon.className = "bi bi-pen"
+      }
+    }
+
+    function handleEditEvents(info) {
+      editedEvents.push(info)
+    }
+
+    function handleEditedEventsSave() {
+      if (editedEvents.length) {
+        editedEvents.forEach(info => {
+          const date = info.event.startStr.split("T")[0]
+          const start = getFormattedTime(info.event.startStr)
+          const end = getFormattedTime(info.event.endStr)
+          const id = info.event.id
+          editedEventFinal.push({
+            id,
+            date,
+            start,
+            end
+          })
+        })
+        fetch('http://localhost:5000/saveEditedEvents', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              editedEventFinal
+            })
+          }).then(res => {
+            if (!res.ok) throw new Error('Network response was not ok');
+            return res.json();
+          }).then(data => {
+            console.log('Success:', data);
+          })
+          .then(() => window.location.reload())
+          .catch(error => {
+            console.error('Error:', error);
+          });
+        console.log(editedEventFinal)
+        editedEvents = []
+      }
+    }
+
     // main FullCalendar
     const calendar = new FullCalendar.Calendar(calendarEl, {
       initialView: 'dayGridMonth',
@@ -263,10 +330,10 @@ $role = $_SESSION['role'];
       overlap: false,
       eventOrder: "-groupId",
       eventOverlap: true,
-      eventStartEditable: function(info) {
-        if (info.event.title === "expired") return true
-        console.log(info.event.title)
-      },
+      // eventStartEditable: function(info) {
+      //   if (info.event.title === "expired") return true
+      //   console.log(info.event.title)
+      // },
       eventAllow: function(dropInfo, draggedEvent) {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -334,17 +401,24 @@ $role = $_SESSION['role'];
           failureCallback(error);
         }
       },
+
       eventDrop: function(info) {
+        if (isEditing) {
+          handleEditEvents(info)
+          return;
+        }
+
         if (isRescheduling) enableReqAppointmentButton()
         newAppointment.date = info.event.startStr.split("T")[0]
         newAppointment.start = getFormattedTime(info.event.startStr)
         newAppointment.end = getFormattedTime(info.event.endStr)
         if (role === "admin" && !isRescheduling) {
           openAppointmentModal(info)
+          return;
         }
       },
       eventClick: function(info) {
-        if (isRescheduling) return
+        if (isRescheduling || isEditing) return
         if (role === "admin") {
           openAppointmentModal(info)
         } else {
@@ -787,7 +861,7 @@ $role = $_SESSION['role'];
         })
       })
       viewButton.addEventListener("click", function() {
-        window.location.href = `http://localhost/salologan/customer_details.php?aid=${info.event.id}`
+        window.location.href = `customer_details.php?aid=${info.event.id}`
       })
 
       appointmentModal.show()

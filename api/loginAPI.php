@@ -1,6 +1,6 @@
 <?php
 date_default_timezone_set('Asia/Manila');
-$bypassUser = ['a', 'xx', 'xxx', 'xxxx', "test"];
+$bypassUser = [];
 if (isset($_POST['login'])) {
 
     $username = $_POST['username'];
@@ -20,6 +20,7 @@ if (isset($_POST['login'])) {
                 $_SESSION['email'] = $result['email'];
                 $_SESSION['username'] = $result['username'];
                 $_SESSION['role'] = $result['role'];
+                $_SESSION['otp'] = $result['otp'];
 
 
                 if (in_array($username, $bypassUser)) {
@@ -28,7 +29,8 @@ if (isset($_POST['login'])) {
                     header('Location:../index.php?selectedDate=' . date("Y-m-d"));
                     exit();
                 }
-                header('location:./sendotp.php?');
+                echo $_SESSION['otp'];
+                header('location:./confirmOtp.php?');
                 exit();
             }
         }

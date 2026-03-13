@@ -224,7 +224,7 @@ if (!isset($_SESSION['id'])) {
               </ul>
             </div>
           </div>
-          <div class="card shadow-sm mb-2">
+          <!-- <div class="card shadow-sm mb-2">
             <div class="card-header bg-primary text-white">
               <h5 class="mb-0">Waiver</h5>
             </div>
@@ -246,7 +246,7 @@ if (!isset($_SESSION['id'])) {
                 <img id="canvasimg" src="<?= $signature ?>">
               </div>
             </div>
-          </div>
+          </div> -->
         </div>
         <div class="col-6">
           <div class="card shadow-sm mb-2">
