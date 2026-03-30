@@ -36,9 +36,9 @@ $role = $_SESSION['role'];
 <body>
 	<?php include('nav.php'); ?>
 	<div class="container <?= $_SESSION['role'] == "admin" ? "d-none" : ""; ?>">
-		<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+		<!-- <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
 			Click here to sign
-		</button>
+		</button> -->
 
 		<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
 			<div class="modal-dialog">
@@ -52,7 +52,7 @@ $role = $_SESSION['role'];
 					</div>
 					<div class="modal-footer">
 						<button type="button" class="btn btn-secondary" id="closeButtonModal" data-bs-dismiss="modal">Close</button>
-						<button type="button" class="btn btn-primary" onclick="save()">Save changes</button>
+						<button type="button" class="btn btn-primary" onclick="save()" data-bs-dismiss="modal">Save changes</button>
 					</div>
 				</div>
 			</div>
@@ -60,19 +60,75 @@ $role = $_SESSION['role'];
 	</div>
 
 	<div class="container card p-5 my-3" id="waiver">
-		<p class="lh-lg">
-			I understand that the information on my account profile was completed correctly and to the best
-			of my knowledge; and thus i assume all risks arising from or connected with any
-			ommission or interpretation of the same. I also understand that it is my responsibility
-			to inform Salapantan Dental Clinic of any charges in the information that i have provided.
-			I voluntarily entrust all my dental treatment to Salapantan Dental Clinic and confirm that
-			I am consenting to all their dental procedures and clinical recommendations, being as I am
-			at all times provided by Salapantan Dental Clinic with sufficient information to give
-			my intelligent consent to the same. Having given my voluntary and intelligent consent
-			to the same, I hold Salapantan Dental Clinic without responsible for any untoward claim,
-			damage or liability in connection with such procedures and recommendations.
+		<p class="lh-lg" id="waiverNote">
+		<div style="font-family: 'Times New Roman', serif; line-height: 1.6;">
+
+			<h3 style="text-align:center;">SALAPANTAN DENTAL CLINIC</h3>
+			<p style="text-align:center;">Brgy. 6, Santiago St., San Miguel, Iloilo</p>
+
+			<h2 style="text-align:center; text-decoration: underline;">WAIVER AND INFORMED CONSENT</h2>
+
+			<p>
+				I, <span class="name"></span>, here by acknowledge that Dr. <span class="doctor"></span>
+				and the dental team of <strong>Salapantan Dental Clinic</strong> have fully explained to me my current dental condition,
+				as well as the recommended treatment plan deemed appropriate for my case.
+			</p>
+
+			<p>
+				I further acknowledge that I have been adequately informed of the nature, purpose, benefits,
+				and potential risks associated with the recommended treatment. In addition, I have been made aware
+				of the possible consequences of refusing or delaying such treatment, which may include, but are not limited to:
+			</p>
+
+			<ul>
+				<li>Progression or worsening of my dental condition</li>
+				<li>Increased pain or discomfort</li>
+				<li>Infection or spread of disease</li>
+				<li>Tooth mobility or potential tooth loss</li>
+				<li>Increased future costs for corrective or more extensive treatment</li>
+			</ul>
+
+			<p>
+				Not withstanding the foregoing explanations, I hereby voluntarily and knowingly choose to decline or postpone
+				the recommended treatment at this time. I fully understand and accept that Salapantan Dental Clinic,
+				Dr. <span class="doctor"></span>, and all affiliated staff shall not be held liable or responsible
+				for any complications, progression of disease, or adverse outcomes that may arise as a result of my decision.
+			</p>
+
+			<p>By signing this waiver, I hereby affirm that:</p>
+
+			<ul>
+				<li>I have been given sufficient opportunity to ask questions, and all my concerns have been addressed to my satisfaction.</li>
+				<li>I am making this decision freely, voluntarily, and without any form of pressure, coercion, or undue influence.</li>
+				<li>I accept full responsibility for any consequences resulting from my decision to decline or postpone the recommended treatment.</li>
+			</ul>
+
+			<br><br>
+
+			<div style="display: flex; justify-content: space-between; width: 100%;">
+				<div>
+					<button type="button" class="btn btn-transparent"
+						data-bs-toggle="modal"
+						data-bs-target="#exampleModal"
+						style="width: 270px; height: 140px; position: absolute; left: 0px;"
+						id="openCanvasBtn">
+						Click here to sign
+					</button>
+					<p>Signature over Printed Name:</p>
+					<p class="text-center"><span class="name"></span></p>
+					<p>Date: <span class="date"></span> </p>
+				</div>
+				<div>
+					<p><strong>LEA GRACE S. SALAPANTAN, DMD</strong></p>
+					<p>Owner/Dentist</p>
+					<p>Date: <span class="date"></span> </p>
+				</div>
+
+			</div>
+
+		</div>
 		</p>
-		<div class="p mt-5">Signature here:<img id="canvasimg" style="width: 400; height: 200px;"></div>
+
 	</div>
 
 	<div class="container d-flex justify-content-end mb-5">
@@ -82,8 +138,20 @@ $role = $_SESSION['role'];
 
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 	<script>
+		document.addEventListener("DOMContentLoaded", function() {
+			waiverDetails()
+		});
+		const today = new Date();
+		const formatted = today.toLocaleDateString('en-US', {
+			year: 'numeric',
+			month: 'long',
+			day: 'numeric'
+		});
+
 		function handleRequestAppointment() {
 			const newAppointment = JSON.parse(sessionStorage.getItem("newAppointment"));
+			newAppointment.waiverDate = today
+			console.log(newAppointment)
 			fetch('http://localhost:5000/requestAppointment', {
 					method: 'POST',
 					headers: {
@@ -101,6 +169,28 @@ $role = $_SESSION['role'];
 				.catch(error => {
 					console.error('Error:', error);
 				});
+		}
+
+		function waiverDetails() {
+			const newAppointment = JSON.parse(sessionStorage.getItem("newAppointment"));
+
+			const name = "Test"
+			const doctor = "_______________ "
+
+			let nameElements = document.getElementsByClassName("name");
+			for (let i = 0; i < nameElements.length; i++) {
+				nameElements[i].innerHTML = name;
+			}
+
+			let doctorElements = document.getElementsByClassName("doctor");
+			for (let i = 0; i < doctorElements.length; i++) {
+				doctorElements[i].innerHTML = doctor;
+			}
+
+			let dateElements = document.getElementsByClassName("date");
+			for (let i = 0; i < dateElements.length; i++) {
+				dateElements[i].innerHTML = formatted;
+			}
 		}
 
 		var customerID = `<?= $user_id; ?>`
@@ -164,8 +254,7 @@ $role = $_SESSION['role'];
 				.then(res => res.json())
 				.then(data => {
 					if (data.success) {
-						document.getElementById("canvasimg").src = dataURL;
-						checkAgreement()
+						document.getElementById("openCanvasBtn").innerHTML = `<img src="${dataURL}"style="width: 270px; height: 140px;">`;
 						document.getElementById("closeButtonModal").click();
 					} else {
 						console.error("Save failed:", data.message);

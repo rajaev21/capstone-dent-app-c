@@ -51,7 +51,7 @@ def getSignatures():
 
     id = request.args.get("id")
 
-    query = "SELECT * FROM signature WHERE user_id = %s"
+    query = "SELECT s.signature, ab.created_at FROM appointment_backup ab join signature s on ab.waiver = s.id WHERE ab.user_id = %s order by ab.aid desc"
     cursor.execute(query, (id,))
     result = cursor.fetchall()
 
@@ -82,6 +82,41 @@ def setSignature():
         f.write(img_data)
 
     query = "INSERT INTO signature (signature, user_id) VALUES (%s ,%s)"
+    cursor.execute(
+        query,
+        (
+            file_path,
+            user_id,
+        ),
+    )
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return jsonify({"success": True, "file_path": file_path})
+
+@app.route("/setConsentSignature", methods=["POST"])
+def setConsentSignature():
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+    data = request.get_json()
+    signature = data.get("signature")
+    user_id = data.get("user_id")
+
+    if not signature or not user_id:
+        return jsonify({"success": False, "message": "Missing data"}), 400
+
+    signature = signature.replace("data:image/png;base64,", "")
+
+    img_data = base64.b64decode(signature)
+    folder = "signatures"
+    os.makedirs(folder, exist_ok=True)
+    file_path = os.path.join(folder, f"{user_id}_{int(time.time())}.png")
+
+    with open(file_path, "wb") as f:
+        f.write(img_data)
+
+    query = "update customer_detail set signature = %s where user = %s"
     cursor.execute(
         query,
         (
@@ -357,6 +392,7 @@ def cancelAppointments():
     conn.close()
     return "success"
 
+
 @app.route("/saveEditedEvents", methods=["POST"])
 def saveEditedEvents():
     conn = mysql.connector.connect(**db_config)
@@ -374,10 +410,10 @@ def saveEditedEvents():
     """
 
     for event in events:
-        start = event['start']
-        end = event['end']
-        date = event['date']
-        id = event['id']
+        start = event["start"]
+        end = event["end"]
+        date = event["date"]
+        id = event["id"]
 
         cursor.execute(query, (start, end, date, id))
 
@@ -387,6 +423,7 @@ def saveEditedEvents():
     conn.close()
 
     return {"message": "success"}
+
 
 @app.route("/getBilling", methods=["GET"])
 def getBilling():
@@ -434,7 +471,13 @@ def addBilling():
         (user_id, appointment_id, remarks, service_type, dentist, total_payment, partial_payment, balance)
         VALUES (%s, %s, '', 1, '',  0, 0, 0)
     """
-    cursor.execute(query, (user,aid,))
+    cursor.execute(
+        query,
+        (
+            user,
+            aid,
+        ),
+    )
     conn.commit()
     new_id = cursor.lastrowid
     cursor.close()
@@ -680,7 +723,7 @@ def rescheduleRequest():
                     ),
                 )
                 services = appointment["services"]
-                print(appointment['user_id'])
+                print(appointment["user_id"])
                 for service in services:
                     cursor.execute(
                         """insert into service (user_id, appointment_id, remarks, service_type, dentist, total_payment,partial_payment, balance) values (%s,%s,%s,%s,%s,%s,%s,%s)""",
@@ -934,7 +977,7 @@ def requestAppointment():
     data = request.get_json()
     appointment = data.get("newAppointment")
     cursor.execute(
-        "insert into appointment_backup (user_id, appointment_start, appointment_end , note, status, date) values (%s,%s,%s,%s,%s,%s)",
+        "INSERT INTO appointment_backup (user_id, appointment_start, appointment_end, note, status, date) VALUES (%s,%s,%s,%s,%s,%s)",
         (
             appointment["user_id"],
             appointment["start"],
@@ -944,7 +987,17 @@ def requestAppointment():
             appointment["date"],
         ),
     )
+
     inserted_id = cursor.lastrowid
+
+    cursor.execute("SELECT id FROM signature ORDER BY id DESC LIMIT 1")
+    row = cursor.fetchone()
+    signature_id = row["id"]
+
+    cursor.execute(
+        "UPDATE appointment_backup SET waiver = %s WHERE aid = %s",
+        (signature_id, inserted_id),
+    )
     if inserted_id:
         for service in appointment["services"]:
             cursor.execute(
@@ -1118,7 +1171,6 @@ def checkEmail():
     return result
 
 
-
 @app.route("/login", methods=["GET"])
 def login():
     conn = mysql.connector.connect(**db_config)
@@ -1137,9 +1189,9 @@ def login():
     number = "123456789"
     otp = "".join(random.choice(number) for _ in range(6))
 
-    result[0]['otp'] = otp
+    result[0]["otp"] = otp
     sub = "OTP"
-    sendto = result[0]['email']
+    sendto = result[0]["email"]
     body = f"OTP: {otp}"
     msg = Message(subject=sub, recipients=[sendto], body=body)
     mail.send(msg)

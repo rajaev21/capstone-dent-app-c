@@ -14,7 +14,6 @@ if (!$_GET['id']) {
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
   <!-- BS icon -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     #waiver {
       position: relative;
@@ -67,6 +66,7 @@ if (!$_GET['id']) {
         $isBreastfeeding = $row['isBreastfeeding'];
         $additionalInformation = $row['additionalInformation'];
         $last_updated = $row['last_updated'];
+        $consentSignature = $row['signature'];
 
         if (!empty($row['medications'])) {
           $conditions = explode(',', $row['medications']);
@@ -137,19 +137,66 @@ if (!$_GET['id']) {
           </div>
           <div class="modal-body">
             <div class="container card p-5 my-3" id="waiver">
-              <p class="lh-lg">
-                I understand that the information on my account profile was completed correctly and to the best
-                of my knowledge; and thus i assume all risks arising from or connected with any
-                ommission or interpretation of the same. I also understand that it is my responsibility
-                to inform Salapantan Dental Clinic of any charges in the information that i have provided.
-                I voluntarily entrust all my dental treatment to Salapantan Dental Clinic and confirm that
-                I am consenting to all their dental procedures and clinical recommendations, being as I am
-                at all times provided by Salapantan Dental Clinic with sufficient information to give
-                my intelligent consent to the same. Having given my voluntary and intelligent consent
-                to the same, I hold Salapantan Dental Clinic without responsible for any untoward claim,
-                damage or liability in connection with such procedures and recommendations.
+              <p class="lh-lg" id="waiverNote">
+              <div style="font-family: 'Times New Roman', serif; line-height: 1.6;">
+
+                <h3 style="text-align:center;">SALAPANTAN DENTAL CLINIC</h3>
+                <p style="text-align:center;">Brgy. 6, Santiago St., San Miguel, Iloilo</p>
+
+                <h2 style="text-align:center; text-decoration: underline;">WAIVER AND INFORMED CONSENT</h2>
+
+                <p>
+                  I, <?= $firstName . ' ' . $middleName . ' ' . $lastName ?>, here by acknowledge that Dr. <span class="doctor"></span>
+                  and the dental team of <strong>Salapantan Dental Clinic</strong> have fully explained to me my current dental condition,
+                  as well as the recommended treatment plan deemed appropriate for my case.
+                </p>
+
+                <p>
+                  I further acknowledge that I have been adequately informed of the nature, purpose, benefits,
+                  and potential risks associated with the recommended treatment. In addition, I have been made aware
+                  of the possible consequences of refusing or delaying such treatment, which may include, but are not limited to:
+                </p>
+
+                <ul>
+                  <li>Progression or worsening of my dental condition</li>
+                  <li>Increased pain or discomfort</li>
+                  <li>Infection or spread of disease</li>
+                  <li>Tooth mobility or potential tooth loss</li>
+                  <li>Increased future costs for corrective or more extensive treatment</li>
+                </ul>
+
+                <p>
+                  Not withstanding the foregoing explanations, I hereby voluntarily and knowingly choose to decline or postpone
+                  the recommended treatment at this time. I fully understand and accept that Salapantan Dental Clinic,
+                  Dr. <span class="doctor"></span>, and all affiliated staff shall not be held liable or responsible
+                  for any complications, progression of disease, or adverse outcomes that may arise as a result of my decision.
+                </p>
+
+                <p>By signing this waiver, I hereby affirm that:</p>
+
+                <ul>
+                  <li>I have been given sufficient opportunity to ask questions, and all my concerns have been addressed to my satisfaction.</li>
+                  <li>I am making this decision freely, voluntarily, and without any form of pressure, coercion, or undue influence.</li>
+                  <li>I accept full responsibility for any consequences resulting from my decision to decline or postpone the recommended treatment.</li>
+                </ul>
+
+                <br><br>
+
+                <div style="display: flex; justify-content: space-between; width: 100%;">
+                  <div>
+                    <img id="waiverImg" style="width: 270px; height: 140px; position: absolute; left: 0px;">
+                    <p>Signature over Printed Name:</p>
+                    <p class="text-center"><?= $firstName . ' ' . $middleName . ' ' . $lastName ?></p>
+                    <p>Date: <span class="date"></span> </p>
+                  </div>
+                  <div>
+                    <p><strong>LEA GRACE S. SALAPANTAN, DMD</strong></p>
+                    <p>Owner/Dentist</p>
+                    <p>Date: <span class="date"></span> </p>
+                  </div>
+                </div>
+              </div>
               </p>
-              <div class="p mt-5">Signature here:<img id="canvasimg"></div>
             </div>
           </div>
           <div class="modal-footer">
@@ -581,98 +628,139 @@ if (!$_GET['id']) {
             Addtional Information: <textarea class="form-control" name="additionalInformation" <?= $_SESSION['role'] == "admin" ? "readonly" : "" ?>><?= $additionalInformation ?></textarea>
           </div>
         </div>
+      </div>
 
+      <div class="container">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#consentModal">
+          Click here to sign
+        </button>
 
-
-        <h3>Privacy & Policy Agreement</h3>
-        <p>
-          Check the policy and agreement <a href="#" data-bs-toggle="modal" data-bs-target="#myModal">here</a> first to submit the form.
-        </p>
-
-        <div class="modal" id="myModal" tabindex="-1">
+        <div class="modal fade" id="consentModal" tabindex="-1" aria-labelledby="consentModalLabel" aria-hidden="true">
           <div class="modal-dialog">
             <div class="modal-content">
               <div class="modal-header">
-                <h5 class="modal-title">Privacy Policy and Terms of Use</h5>
+                <h1 class="modal-title fs-5" id="consentModalLabel">Signature here</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
               <div class="modal-body">
-                <div class="mb-3">
-                  <h5 class="fw-bold">Introduction</h5>
-                  <p>
-                    Welcome to <span class="fw-bold">DentApp</span>. We value your privacy and are committed to protecting your personal information. This Privacy Policy explains how we collect, use, store, and disclose your information when you use our services.
-                  </p>
-                </div>
-                <div class="mb-3">
-                  <h5 class="fw-bold">1. Information We Collect</h5>
-                  <ul class="list-group list-group-flush">
-                    <li class="list-group-item">
-                      <span class="fw-bold">Personal Information:</span> such as your name, email address, contact details, and login credentials.
-                    </li>
-                  </ul>
-                </div>
-                <div class="mb-3">
-                  <h5 class="fw-bold">2. How We Use Your Information</h5>
-                  <ul class="list-group list-group-flush">
-                    <li class="list-group-item">Provide and maintain our services.</li>
-                    <li class="list-group-item">Communicate with you (e.g., send OTPs).</li>
-                    <li class="list-group-item">Improve our platform and user experience.</li>
-                    <li class="list-group-item">Ensure legal compliance and security.</li>
-                  </ul>
-                </div>
-                <div class="mb-3">
-                  <h5 class="fw-bold">3. Sharing Your Information</h5>
-                  <ul class="list-group list-group-flush">
-                    <li class="list-group-item">We do not sell your data.</li>
-                    <li class="list-group-item">We may share information with service providers (e.g., email or hosting services).</li>
-                    <li class="list-group-item">Legal authorities when required by law.</li>
-                    <li class="list-group-item">Third parties with your consent.</li>
-                  </ul>
-                </div>
-                <div class="mb-3">
-                  <h5 class="fw-bold">4. Cookies and Tracking</h5>
-                  <ul class="list-group list-group-flush">
-                    <li class="list-group-item">Maintain session state.</li>
-                    <li class="list-group-item">Analyze usage and improve performance.</li>
-                    <li class="list-group-item">Personalize content.</li>
-                  </ul>
-                </div>
-                <div class="mb-3">
-                  <h5 class="fw-bold">5. Data Security</h5>
-                  <p>
-                    We implement reasonable technical and organizational measures to protect your data. However, no method of transmission over the internet is 100% secure.
-                  </p>
-                </div>
-                <div class="mb-3">
-                  <h5 class="fw-bold">6. User Rights</h5>
-                  <ul class="list-group list-group-flush">
-                    <li class="list-group-item">Access, update, or delete your personal data.</li>
-                    <li class="list-group-item">Withdraw consent at any time.</li>
-                    <li class="list-group-item">Lodge a complaint with a data protection authority.</li>
-                  </ul>
-                </div>
-                <div class="mb-2">
-                  <h5 class="fw-bold">Contact Us</h5>
-                  <p>
-                    If you have any questions about this policy, please contact us at:
-                    <br>
-                    <a href="mailto:salologankenneth23@gmail.com" class="text-decoration-none">salologankenneth23@gmail.com</a>
-                  </p>
-                </div>
-                <input type="checkbox" id="policyID" onchange="checkAgreement()">
-                By checking the box, you agree to our terms and conditions,
-                including the collection and processing of your personal data.
+                <canvas id="can" width="460" height="400" style="border:2px solid;"></canvas>
               </div>
               <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" id="closeButtonModal" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="save()">Save changes</button>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="row p-5"><input class="btn btn-primary <?= $_SESSION['role'] == "admin" ? "d-none" : ""; ?>" type="submit" value="Submit" name="appoint" id="submitButton" disabled></div>
-    </form>
+
+      <div class="container" id="waiver">
+        <p class="lh-lg">
+          I understand that the above information was completed correctly and to the best
+          of my knowledge; and thus i assume all risks arising from or connected with any
+          ommission or interpretation of the same. I also understand that it is my responsibility
+          to inform Salapantan Dental Clinic of any charges in the information that i have provided.
+          I voluntarily entrust all my dental treatment to Salapantan Dental Clinic and confirm that
+          I am consenting to all their dental procedures and clinical recommendations, being as I am
+          at all times provided by Salapantan Dental Clinic with sufficient information to give
+          my intelligent consent to the same. Having given my voluntary and intelligent consent
+          to the same, I hold Salapantan Dental Clinic without responsible for any untoward claim,
+          damage or liability in connection with such procedures and recommendations.
+        </p>
+        <div class="p m-5">Name here:<img id="canvasimg" src="<?= $consentSignature ?>"></div>
+
+      </div>
+
+      <h3>Privacy & Policy Agreement</h3>
+      <p>
+        Check the policy and agreement <a href="#" data-bs-toggle="modal" data-bs-target="#myModal">here</a> first to submit the form.
+      </p>
+
+      <div class="modal" id="myModal" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Privacy Policy and Terms of Use</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <h5 class="fw-bold">Introduction</h5>
+                <p>
+                  Welcome to <span class="fw-bold">DentApp</span>. We value your privacy and are committed to protecting your personal information. This Privacy Policy explains how we collect, use, store, and disclose your information when you use our services.
+                </p>
+              </div>
+              <div class="mb-3">
+                <h5 class="fw-bold">1. Information We Collect</h5>
+                <ul class="list-group list-group-flush">
+                  <li class="list-group-item">
+                    <span class="fw-bold">Personal Information:</span> such as your name, email address, contact details, and login credentials.
+                  </li>
+                </ul>
+              </div>
+              <div class="mb-3">
+                <h5 class="fw-bold">2. How We Use Your Information</h5>
+                <ul class="list-group list-group-flush">
+                  <li class="list-group-item">Provide and maintain our services.</li>
+                  <li class="list-group-item">Communicate with you (e.g., send OTPs).</li>
+                  <li class="list-group-item">Improve our platform and user experience.</li>
+                  <li class="list-group-item">Ensure legal compliance and security.</li>
+                </ul>
+              </div>
+              <div class="mb-3">
+                <h5 class="fw-bold">3. Sharing Your Information</h5>
+                <ul class="list-group list-group-flush">
+                  <li class="list-group-item">We do not sell your data.</li>
+                  <li class="list-group-item">We may share information with service providers (e.g., email or hosting services).</li>
+                  <li class="list-group-item">Legal authorities when required by law.</li>
+                  <li class="list-group-item">Third parties with your consent.</li>
+                </ul>
+              </div>
+              <div class="mb-3">
+                <h5 class="fw-bold">4. Cookies and Tracking</h5>
+                <ul class="list-group list-group-flush">
+                  <li class="list-group-item">Maintain session state.</li>
+                  <li class="list-group-item">Analyze usage and improve performance.</li>
+                  <li class="list-group-item">Personalize content.</li>
+                </ul>
+              </div>
+              <div class="mb-3">
+                <h5 class="fw-bold">5. Data Security</h5>
+                <p>
+                  We implement reasonable technical and organizational measures to protect your data. However, no method of transmission over the internet is 100% secure.
+                </p>
+              </div>
+              <div class="mb-3">
+                <h5 class="fw-bold">6. User Rights</h5>
+                <ul class="list-group list-group-flush">
+                  <li class="list-group-item">Access, update, or delete your personal data.</li>
+                  <li class="list-group-item">Withdraw consent at any time.</li>
+                  <li class="list-group-item">Lodge a complaint with a data protection authority.</li>
+                </ul>
+              </div>
+              <div class="mb-2">
+                <h5 class="fw-bold">Contact Us</h5>
+                <p>
+                  If you have any questions about this policy, please contact us at:
+                  <br>
+                  <a href="mailto:salologankenneth23@gmail.com" class="text-decoration-none">salologankenneth23@gmail.com</a>
+                </p>
+              </div>
+              <input type="checkbox" id="policyID" onchange="checkAgreement()">
+              By checking the box, you agree to our terms and conditions,
+              including the collection and processing of your personal data.
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+  </div>
+
+  <div class="row p-5"><input class="btn btn-primary <?= $_SESSION['role'] == "admin" ? "d-none" : ""; ?>" type="submit" value="Submit" name="appoint" id="submitButton" disabled></div>
+  </form>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
@@ -680,10 +768,8 @@ if (!$_GET['id']) {
   <script>
     function openWaiverModal(signature, date) {
       const modal = new bootstrap.Modal(document.getElementById("exampleModal"));
-
-      const canvasImg = document.getElementById("canvasimg");
+      const canvasImg = document.getElementById("waiverImg");
       const modalLabel = document.getElementById("exampleModalLabel");
-      console.log(signature)
       canvasImg.src = decodeURIComponent(signature);
 
       modalLabel.textContent = date;
@@ -700,10 +786,113 @@ if (!$_GET['id']) {
       }
     }
 
+    var customerID = `<?= $_GET['id']; ?>`
+    var canvas, ctx, flag = false,
+      prevX = 0,
+      currX = 0,
+      prevY = 0,
+      currY = 0,
+      dot_flag = false;
+
+    var x = "black",
+      y = 2;
+
+    function init() {
+      canvas = document.getElementById('can');
+      ctx = canvas.getContext("2d");
+      w = canvas.width;
+      h = canvas.height;
+
+      canvas.addEventListener("mousemove", e => findxy('move', e), false);
+      canvas.addEventListener("mousedown", e => findxy('down', e), false);
+      canvas.addEventListener("mouseup", e => findxy('up', e), false);
+      canvas.addEventListener("mouseout", e => findxy('out', e), false);
+    }
+
+    document.addEventListener('shown.bs.modal', function(event) {
+      if (event.target.id === 'consentModal') {
+        init();
+      }
+    });
+    document.addEventListener('hidden.bs.modal', function(event) {
+      if (event.target.id === 'consentModal') {
+        erase();
+      }
+    });
+
+    function draw() {
+      ctx.beginPath();
+      ctx.moveTo(prevX, prevY);
+      ctx.lineTo(currX, currY);
+      ctx.strokeStyle = x;
+      ctx.lineWidth = y;
+      ctx.stroke();
+      ctx.closePath();
+    }
+
+    function save() {
+      const dataURL = canvas.toDataURL("image/png");
+
+      fetch("http://localhost:5000/setConsentSignature", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            signature: dataURL,
+            user_id: customerID
+          })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            document.getElementById("canvasimg").src = dataURL;
+            checkAgreement()
+            document.getElementById("closeButtonModal").click();
+          } else {
+            console.error("Save failed:", data.message);
+          }
+        })
+        .catch(err => console.error(err));
+    }
+
+    function erase() {
+      ctx.clearRect(0, 0, w, h);
+    }
+
+    function findxy(res, e) {
+      const rect = canvas.getBoundingClientRect();
+      if (res == 'down') {
+        prevX = currX;
+        prevY = currY;
+        currX = e.clientX - rect.left;
+        currY = e.clientY - rect.top;
+
+        flag = true;
+        dot_flag = true;
+        if (dot_flag) {
+          ctx.beginPath();
+          ctx.fillStyle = x;
+          ctx.fillRect(currX, currY, 2, 2);
+          ctx.closePath();
+          dot_flag = false;
+        }
+      }
+      if (res == 'up' || res == "out") flag = false;
+      if (res == 'move' && flag) {
+        prevX = currX;
+        prevY = currY;
+        currX = e.clientX - rect.left;
+        currY = e.clientY - rect.top;
+        draw();
+      }
+    }
+
     function checkAgreement() {
       const canvasimg = document.getElementById("canvasimg")
       const policyID = document.getElementById("policyID");
-      if (policyID.checked) {
+      const imgsrc = canvasimg.getAttribute("src")
+      if (policyID.checked && imgsrc) {
         document.getElementById("submitButton").disabled = false;
       } else {
         document.getElementById("submitButton").disabled = true;
