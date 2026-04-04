@@ -403,11 +403,6 @@ $role = $_SESSION['role'];
       },
 
       eventDrop: function(info) {
-        if (isEditing) {
-          handleEditEvents(info)
-          return;
-        }
-
         if (isRescheduling) enableReqAppointmentButton()
         newAppointment.date = info.event.startStr.split("T")[0]
         newAppointment.start = getFormattedTime(info.event.startStr)
@@ -418,7 +413,11 @@ $role = $_SESSION['role'];
         }
       },
       eventClick: function(info) {
-        if (isRescheduling || isEditing) return
+        if (isRescheduling) return
+        if (isEditing) {
+          handleEditEvents(info)
+          return;
+        }
         if (role === "admin") {
           openAppointmentModal(info)
         } else {
@@ -722,6 +721,7 @@ $role = $_SESSION['role'];
       const event = calendar.getEventById(info.event.id)
       const overlapId = getOverlap(info.event).map(item => item.id)
       const appointmentServices = await getAppointmentServices(info.event.id)
+      console.log(appointmentServices[0])
       const appointmentModal = new bootstrap.Modal(document.getElementById("appointmentModal"));
       const modalTitle = document.querySelector(".modal-title")
       modalTitle.classList.add("text-capitalize")

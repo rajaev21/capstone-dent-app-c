@@ -65,8 +65,13 @@ if (!$_GET['id']) {
         $isPregnant = $row['isPregnant'];
         $isBreastfeeding = $row['isBreastfeeding'];
         $additionalInformation = $row['additionalInformation'];
-        $last_updated = $row['last_updated'];
         $consentSignature = $row['signature'];
+
+        if(isset($row['last_updated'])) {
+          $last_updated = $row['last_updated'];
+        } else {
+          $last_updated = '';
+        }
 
         if (!empty($row['medications'])) {
           $conditions = explode(',', $row['medications']);
@@ -337,7 +342,7 @@ if (!$_GET['id']) {
           <div class="d-flex align-items-center justify-content-center bg-light m-4">
             <div class="col">
               <div class="card-body p-2">
-                <div class="card-title h3 fw-bold mb-0">conditions: (Optional)</div>
+                <div class="card-title h3 fw-bold mb-0">conditions: </div>
                 <div class="card-text mb-4">Please check the only that apply.</div>
                 <div class="row m-3">
                   <div class="row p-3">
@@ -356,7 +361,7 @@ if (!$_GET['id']) {
                     </div>
                     <div class="form-check">
                       <label class="form-check-label" for="birthControl">
-                        Birth control / Hormonal therapy (Thrust Daphne, Minipil, etc.)
+                        Birth control / Hormonal therapy (Trust Daphne, Minipil, etc.)
                       </label>
                       <input class="form-check-input" type="checkbox" value="birthControl" id="birthControl" name="taken[]" <?php if (in_array("birthControl", $taken_list)) echo "checked"; ?> <?= $_SESSION['role'] == "admin" ? "disabled" : ""; ?>>
                     </div>
@@ -421,7 +426,7 @@ if (!$_GET['id']) {
                     </div>
                     <div class="form-check">
                       <label class="form-check-label" for="heartAilments">
-                        Hearth Ailments
+                        Heart Ailments
                       </label>
                       <input class="form-check-input" type="checkbox" value="heartAilments" id="heartAilments" name="conditions[]" <?php if (in_array("heartAilments", $conditions)) echo "checked"; ?> <?= $_SESSION['role'] == "admin" ? "disabled" : ""; ?>>
                     </div>
@@ -463,7 +468,7 @@ if (!$_GET['id']) {
                     </div>
                     <div class="form-check">
                       <label class="form-check-label" for="rheumatic">
-                        Rheumatic Hearth Disease
+                        Rheumatic Heart Disease
                       </label>
                       <input class="form-check-input" type="checkbox" value="rheumatic" id="rheumatic" name="conditions[]" <?php if (in_array("rheumatic", $conditions)) echo "checked"; ?> <?= $_SESSION['role'] == "admin" ? "disabled" : ""; ?>>
                     </div>
@@ -566,7 +571,7 @@ if (!$_GET['id']) {
                     </div>
                     <div class="form-check">
                       <label class="form-check-label" for="aids">
-                        Aids
+                        AIDS
                       </label>
                       <input class="form-check-input" type="checkbox" value="aids" id="aids" name="conditions[]" <?php if (in_array("aids", $conditions)) echo "checked"; ?> <?= $_SESSION['role'] == "admin" ? "disabled" : ""; ?>>
                     </div>
@@ -677,87 +682,86 @@ if (!$_GET['id']) {
         Check the policy and agreement <a href="#" data-bs-toggle="modal" data-bs-target="#myModal">here</a> first to submit the form.
       </p>
 
-      <div class="modal" id="myModal" tabindex="-1">
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title">Privacy Policy and Terms of Use</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <div class="mb-3">
-                <h5 class="fw-bold">Introduction</h5>
-                <p>
-                  Welcome to <span class="fw-bold">DentApp</span>. We value your privacy and are committed to protecting your personal information. This Privacy Policy explains how we collect, use, store, and disclose your information when you use our services.
-                </p>
+        <div class="modal" id="myModal" tabindex="-1">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Privacy Policy and Terms of Use</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
-              <div class="mb-3">
-                <h5 class="fw-bold">1. Information We Collect</h5>
-                <ul class="list-group list-group-flush">
-                  <li class="list-group-item">
-                    <span class="fw-bold">Personal Information:</span> such as your name, email address, contact details, and login credentials.
-                  </li>
-                </ul>
+              <div class="modal-body">
+                <div class="mb-3">
+                  <h5 class="fw-bold">Introduction</h5>
+                  <p>
+                    Welcome to <span class="fw-bold">DentApp</span>. We value your privacy and are committed to protecting your personal information. This Privacy Policy explains how we collect, use, store, and disclose your information when you use our services.
+                  </p>
+                </div>
+                <div class="mb-3">
+                  <h5 class="fw-bold">1. Information We Collect</h5>
+                  <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                      <span class="fw-bold">Personal Information:</span> such as your name, email address, contact details, and login credentials.
+                    </li>
+                  </ul>
+                </div>
+                <div class="mb-3">
+                  <h5 class="fw-bold">2. How We Use Your Information</h5>
+                  <ul class="list-group list-group-flush">
+                    <li class="list-group-item">Provide and maintain our services.</li>
+                    <li class="list-group-item">Communicate with you (e.g., send OTPs).</li>
+                    <li class="list-group-item">Improve our platform and user experience.</li>
+                    <li class="list-group-item">Ensure legal compliance and security.</li>
+                  </ul>
+                </div>
+                <div class="mb-3">
+                  <h5 class="fw-bold">3. Sharing Your Information</h5>
+                  <ul class="list-group list-group-flush">
+                    <li class="list-group-item">We do not sell your data.</li>
+                    <li class="list-group-item">We may share information with service providers (e.g., email or hosting services).</li>
+                    <li class="list-group-item">Legal authorities when required by law.</li>
+                    <li class="list-group-item">Third parties with your consent.</li>
+                  </ul>
+                </div>
+                <div class="mb-3">
+                  <h5 class="fw-bold">4. Cookies and Tracking</h5>
+                  <ul class="list-group list-group-flush">
+                    <li class="list-group-item">Maintain session state.</li>
+                    <li class="list-group-item">Analyze usage and improve performance.</li>
+                    <li class="list-group-item">Personalize content.</li>
+                  </ul>
+                </div>
+                <div class="mb-3">
+                  <h5 class="fw-bold">5. Data Security</h5>
+                  <p>
+                    We implement reasonable technical and organizational measures to protect your data. However, no method of transmission over the internet is 100% secure.
+                  </p>
+                </div>
+                <div class="mb-3">
+                  <h5 class="fw-bold">6. User Rights</h5>
+                  <ul class="list-group list-group-flush">
+                    <li class="list-group-item">Access and update your personal data.</li>
+                    <li class="list-group-item">Lodge a complaint with a data protection authority.</li>
+                  </ul>
+                </div>
+                <div class="mb-2">
+                  <h5 class="fw-bold">Contact Us</h5>
+                  <p>
+                    If you have any questions about this policy, please contact us at:
+                    <br>
+                    <a href="mailto:dentappsys@gmail.com" class="text-decoration-none">dentappsys@gmail.com</a>
+                  </p>
+                </div>
+                <input type="checkbox" id="policyID" onchange="checkAgreement()">
+                By checking the box, you agree to our terms and conditions,
+                including the collection and processing of your personal data.
               </div>
-              <div class="mb-3">
-                <h5 class="fw-bold">2. How We Use Your Information</h5>
-                <ul class="list-group list-group-flush">
-                  <li class="list-group-item">Provide and maintain our services.</li>
-                  <li class="list-group-item">Communicate with you (e.g., send OTPs).</li>
-                  <li class="list-group-item">Improve our platform and user experience.</li>
-                  <li class="list-group-item">Ensure legal compliance and security.</li>
-                </ul>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
               </div>
-              <div class="mb-3">
-                <h5 class="fw-bold">3. Sharing Your Information</h5>
-                <ul class="list-group list-group-flush">
-                  <li class="list-group-item">We do not sell your data.</li>
-                  <li class="list-group-item">We may share information with service providers (e.g., email or hosting services).</li>
-                  <li class="list-group-item">Legal authorities when required by law.</li>
-                  <li class="list-group-item">Third parties with your consent.</li>
-                </ul>
-              </div>
-              <div class="mb-3">
-                <h5 class="fw-bold">4. Cookies and Tracking</h5>
-                <ul class="list-group list-group-flush">
-                  <li class="list-group-item">Maintain session state.</li>
-                  <li class="list-group-item">Analyze usage and improve performance.</li>
-                  <li class="list-group-item">Personalize content.</li>
-                </ul>
-              </div>
-              <div class="mb-3">
-                <h5 class="fw-bold">5. Data Security</h5>
-                <p>
-                  We implement reasonable technical and organizational measures to protect your data. However, no method of transmission over the internet is 100% secure.
-                </p>
-              </div>
-              <div class="mb-3">
-                <h5 class="fw-bold">6. User Rights</h5>
-                <ul class="list-group list-group-flush">
-                  <li class="list-group-item">Access, update, or delete your personal data.</li>
-                  <li class="list-group-item">Withdraw consent at any time.</li>
-                  <li class="list-group-item">Lodge a complaint with a data protection authority.</li>
-                </ul>
-              </div>
-              <div class="mb-2">
-                <h5 class="fw-bold">Contact Us</h5>
-                <p>
-                  If you have any questions about this policy, please contact us at:
-                  <br>
-                  <a href="mailto:salologankenneth23@gmail.com" class="text-decoration-none">salologankenneth23@gmail.com</a>
-                </p>
-              </div>
-              <input type="checkbox" id="policyID" onchange="checkAgreement()">
-              By checking the box, you agree to our terms and conditions,
-              including the collection and processing of your personal data.
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
           </div>
         </div>
       </div>
-  </div>
 
   <div class="row p-5"><input class="btn btn-primary <?= $_SESSION['role'] == "admin" ? "d-none" : ""; ?>" type="submit" value="Submit" name="appoint" id="submitButton" disabled></div>
   </form>

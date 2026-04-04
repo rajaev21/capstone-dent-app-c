@@ -23,9 +23,9 @@ db_config = {
 app.config["MAIL_SERVER"] = "smtp.gmail.com"
 app.config["MAIL_PORT"] = 587
 app.config["MAIL_USE_TLS"] = True
-app.config["MAIL_USERNAME"] = "rajaevberame21@gmail.com"
-app.config["MAIL_PASSWORD"] = "crjc pyte giau zppp"
-app.config["MAIL_DEFAULT_SENDER"] = "rajaevberame21@gmail.com"
+app.config["MAIL_USERNAME"] = "dentappsys@gmail.com"
+app.config["MAIL_PASSWORD"] = "nasi nsll jpiw lqng"
+app.config["MAIL_DEFAULT_SENDER"] = "dentappsys@gmail.com"
 mail = Mail(app)
 
 
@@ -430,9 +430,9 @@ def getBilling():
     conn = mysql.connector.connect(**db_config)
     cursor = conn.cursor(dictionary=True)
 
-    aid = request.args.get("aid")
-    query = "select s.*, st.service_type as service_type from service s join service_type st on s.service_type = st.id where s.appointment_id = %s"
-    cursor.execute(query, (aid,))
+    user_id = request.args.get("user_id")
+    query = "select s.*, st.service_type as service_type from service s join service_type st on s.service_type = st.id where s.user_id = %s"
+    cursor.execute(query, (user_id,))
     result = cursor.fetchall()
     cursor.close()
     conn.close()
@@ -912,16 +912,22 @@ def getAppointmentServices():
     aid = request.args.get("aid")
     cursor.execute(
         """
-        select st.*, concat(cd.firstName, ' ', cd.lastName) as fullname
+        select s.*,
+        concat(cd.firstName, ' ', cd.lastName) AS fullname,
+        s.user_id,
+        st.service_type,
+        st.price
         from service s
-        join service_type st on st.id = s.service_type
-        join customer_detail cd on cd.user = s.user_id
-        where s.appointment_id = %s
+        join appointment_backup ab ON ab.user_id = s.user_id
+        join customer_detail cd ON cd.user = s.user_id
+        join service_type st ON st.id = s.service_type
+        where ab.aid = %s;
         """,
         (aid,),
     )
 
     result = cursor.fetchall()
+    print(result)
     cursor.close()
     conn.close()
     return jsonify(result)

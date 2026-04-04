@@ -4,6 +4,8 @@ if (!isset($_SESSION['id'])) {
   header('Location:./login.php?response=Please log in again');
   exit();
 }
+
+$aid = $_GET['aid']
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -142,7 +144,7 @@ if (!isset($_SESSION['id'])) {
   ?>
   <div class="container">
     <?php if (isset($_GET['aid'])) {
-      $response = file_get_contents('http://localhost:5000/getAppointedCustomer?aid=' . $_GET['aid']);
+      $response = file_get_contents('http://localhost:5000/getAppointedCustomer?aid=' . $aid);
       $response = json_decode($response, true);
       if (count($response) > 0) {
         foreach ($response as $row) {

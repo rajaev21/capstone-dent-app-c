@@ -1,7 +1,3 @@
-<?php
-$user_id = $_SESSION['id'];
-$aid = $_GET['aid'];
-?>
 <div class="container mt-4">
   <h4 class="mb-3">Billing</h4>
   <div class="btn btn-primary" onclick="handleAddBilling('<?= $aid ?>', '<?= $row['user'] ?>')"><i class="bi bi-plus"></i></div>
@@ -20,7 +16,7 @@ $aid = $_GET['aid'];
     </thead>
     <tbody>
       <tr>
-        <?php $response = file_get_contents('http://localhost:5000/getBilling?aid=' . $aid);
+        <?php $response = file_get_contents('http://localhost:5000/getBilling?user_id=' . $user);
         $response = json_decode($response, true); ?>
         <?php if (count($response) > 0) : ?>
           <?php foreach ($response as $row) :
@@ -61,30 +57,26 @@ $aid = $_GET['aid'];
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-  const user_id = <?= $user_id ?>;
-  const urlParams = new URLSearchParams(window.location.search);
-  const aid = urlParams.get('aid');
+  const user_id = <?= $user ?>;
+  const aid = <?= $aid ?>;
 
   document.addEventListener("DOMContentLoaded", function() {
     getServices()
-    getCustomerServices()
-    getDentist()
-    getPayments()
-    getCservice()
   })
 
-  async function getCservice() {
-    const totalCost = document.getElementById("total-cost");
-    const response = await fetch(`http://localhost:5000/getCustomerServices?appointment_id=${aid}`);
-    if (!response.ok) throw new Error("Failed to fetch complaints");
-    const res = await response.json();
+  // async function getCservice() {
+  //   const totalCost = document.getElementById("total-cost");
+  //   // const response = await fetch(`http://localhost:5000/getCustomerServices?user_id=${user_id}`);
+  //   // if (!response.ok) throw new Error("Failed to fetch complaints");
+  //   // const res = await response.json();
+  //   // console.log(res)
 
-    const total = res.map(item => item.servicePrice).reduce((x, y) => parseFloat(x) + parseFloat(y), 0)
-    const newdiv = document.createElement("div");
-    newdiv.textContent = total;
-    newdiv.classList.add("text-center", "fw-bold")
-    totalCost.appendChild(newdiv);
-  }
+  //   const total = res.map(item => item.servicePrice).reduce((x, y) => parseFloat(x) + parseFloat(y), 0)
+  //   const newdiv = document.createElement("div");
+  //   newdiv.textContent = total;
+  //   newdiv.classList.add("text-center", "fw-bold")
+  //   totalCost.appendChild(newdiv);
+  // }
 
   async function getServices() {
     const servicesOptions = document.getElementById("services")
@@ -104,8 +96,6 @@ $aid = $_GET['aid'];
     } catch (err) {
       console.error(err)
     }
-
-    console.log(services)
 
     tds.forEach((td, index) => {
       if (index === 0) return;
@@ -182,7 +172,6 @@ $aid = $_GET['aid'];
   }
 
   function handleAddBilling(aid,user) {
-    console.log(aid, user)
     fetch('http://localhost:5000/addBilling', {
         method: 'POST',
         headers: {
@@ -239,7 +228,7 @@ $aid = $_GET['aid'];
             const tr = document.getElementById(id);
             if (tr) tr.remove();
           })
-          .then(() => window.location.reload())
+          // .then(() => window.location.reload())
           .catch(error => {
             Swal.fire(
               'Error!',
