@@ -47,7 +47,7 @@
     const date = document.getElementById("date").value;
     const submitButton = document.getElementById("submitButton");
     console.log("Start:", startAppointment, "End:", endAppointment, "Date:", date);
-    fetch(`http://localhost:5000/getNextAppointment?date=${date}&end=${endAppointment}&start=${startAppointment}`)
+    fetch(`https://dent-flask-production.up.railway.app/getNextAppointment?date=${date}&end=${endAppointment}&start=${startAppointment}`)
       .then(res => res.json())
       .then(data => {
         if (data && data.length > 0) {
@@ -59,7 +59,7 @@
   }
 
   async function getServices() {
-    const res = await fetch('http://localhost:5000/getServices');
+    const res = await fetch('https://dent-flask-production.up.railway.app/getServices');
     const data = await res.json();
     const submitButton = document.getElementById("submitButton");
 

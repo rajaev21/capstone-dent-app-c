@@ -32,7 +32,7 @@ if (!$_GET['id']) {
   <?php if (isset($_GET['id'])) {
     include("nav.php");
 
-    $response = file_get_contents('http://localhost:5000/getCustomerProfile?id=' . $_GET['id']);
+    $response = file_get_contents('https://dent-flask-production.up.railway.app/getCustomerProfile?id=' . $_GET['id']);
     $response = json_decode($response, true);
     if (count($response) > 0) {
       foreach ($response as $row) {
@@ -110,7 +110,7 @@ if (!$_GET['id']) {
       <div class="offcanvas-body">
         <div class="container">
           <?php
-          $signatures = file_get_contents('http://localhost:5000/getSignatures?id=' . $_GET['id']);
+          $signatures = file_get_contents('https://dent-flask-production.up.railway.app/getSignatures?id=' . $_GET['id']);
           $signatures = json_decode($signatures, true);
           ?>
           <?php if (count($signatures) > 0): ?>
@@ -837,7 +837,7 @@ if (!$_GET['id']) {
     function save() {
       const dataURL = canvas.toDataURL("image/png");
 
-      fetch("http://localhost:5000/setConsentSignature", {
+      fetch("https://dent-flask-production.up.railway.app/setConsentSignature", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"

@@ -6,7 +6,7 @@ $user_id = $_POST['user_id'];
 $answer = $_POST['answer'];
 
 if (isset($_POST['answer'])) {
-  $result = file_get_contents("http://localhost:5000/rCancelApproval?aid=" . urlencode($aid) . "&admin_id=" . urlencode($admin_id) . "&user_id=" .  urlencode($user_id) . "&answer=" . urlencode($answer));
+  $result = file_get_contents("https://dent-flask-production.up.railway.app/rCancelApproval?aid=" . urlencode($aid) . "&admin_id=" . urlencode($admin_id) . "&user_id=" .  urlencode($user_id) . "&answer=" . urlencode($answer));
   $result = json_decode($result);
   if ($answer == "No") {
     header("location: ../customer_details.php?aid=" . urlencode($aid));

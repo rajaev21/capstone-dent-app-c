@@ -9,7 +9,7 @@ if (isset($_POST['register'])) {
   $adminCode = $_POST['adminCode'];
 
 
-  $result_email = file_get_contents('http://localhost:5000/checkEmail?' .
+  $result_email = file_get_contents('https://dent-flask-production.up.railway.app/checkEmail?' .
     '&email=' . urlencode($email));
   $result_email = json_decode($result_email, true);
 
@@ -24,7 +24,7 @@ if (isset($_POST['register'])) {
     exit;
   }
   $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
-  $response = file_get_contents('http://localhost:5000/login?' .
+  $response = file_get_contents('https://dent-flask-production.up.railway.app/login?' .
     '&username=' . urlencode($username));
   $response = json_decode($response, true);
   if (!empty($response[0]['username'])) {
@@ -34,7 +34,7 @@ if (isset($_POST['register'])) {
 
     if ($adminCode) {
       if (@$adminCode == "@dentapp") {
-        $response = file_get_contents('http://localhost:5000/register?' .
+        $response = file_get_contents('https://dent-flask-production.up.railway.app/register?' .
           '&username=' . urlencode($username) .
           '&password=' . urlencode($hashedPassword) .
           '&email=' . urlencode($email) .
@@ -45,7 +45,7 @@ if (isset($_POST['register'])) {
         header('location: ../login.php?response=Invalid admin code');
       }
     } else {
-      $response = file_get_contents('http://localhost:5000/register?' .
+      $response = file_get_contents('https://dent-flask-production.up.railway.app/register?' .
         '&username=' . urlencode($username) .
         '&password=' . urlencode($hashedPassword) .
         '&email=' . urlencode($email) .

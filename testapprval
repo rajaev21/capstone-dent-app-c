@@ -36,7 +36,7 @@
         // $date = $_GET['selectedDate'];
         // $start = urldecode($_GET['starting']);
 
-        // $response = file_get_contents('http://localhost:5000/getWaiting?date=' . $date . "&start=" . $start);
+        // $response = file_get_contents('https://dent-flask-production.up.railway.app/getWaiting?date=' . $date . "&start=" . $start);
         // $response = json_decode($response, true);
         // foreach ($response as $customer) {
         ?>
@@ -140,7 +140,7 @@
     async function loadWaiting(date, start) {
       try {
         // Call your Flask API
-        const res = await fetch(`http://localhost:5000/getWaiting?date=${date}&start=${start}`);
+        const res = await fetch(`https://dent-flask-production.up.railway.app/getWaiting?date=${date}&start=${start}`);
         const data = await res.json();
 
         const tbody = document.getElementById("waitingBody");

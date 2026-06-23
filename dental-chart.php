@@ -141,7 +141,7 @@
       }
 
       try {
-        const res = await fetch(`http://localhost:5000/getFindings?aid=${aid}`);
+        const res = await fetch(`https://dent-flask-production.up.railway.app/getFindings?aid=${aid}`);
         const data = await res.json();
         return data;
       } catch (err) {
@@ -160,7 +160,7 @@
         user_id: customerID
       });
 
-      const res = fetch(`http://localhost:5000/setToothConditionChanges?${params.toString()}`)
+      const res = fetch(`https://dent-flask-production.up.railway.app/setToothConditionChanges?${params.toString()}`)
         .then(res => res.json())
         .then(data => {
           if (data) {

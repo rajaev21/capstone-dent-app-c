@@ -46,7 +46,7 @@
     console.log(start)
     async function loadWaiting(date, start) {
       try {
-        const res = await fetch(`http://localhost:5000/getWaiting?date=${date}&start=${start}`);
+        const res = await fetch(`https://dent-flask-production.up.railway.app/getWaiting?date=${date}&start=${start}`);
         const data = await res.json();
 
         const tbody = document.getElementById("waitingBody");

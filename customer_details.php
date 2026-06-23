@@ -144,7 +144,7 @@ $aid = $_GET['aid']
   ?>
   <div class="container">
     <?php if (isset($_GET['aid'])) {
-      $response = file_get_contents('http://localhost:5000/getAppointedCustomer?aid=' . $aid);
+      $response = file_get_contents('https://dent-flask-production.up.railway.app/getAppointedCustomer?aid=' . $aid);
       $response = json_decode($response, true);
       if (count($response) > 0) {
         foreach ($response as $row) {

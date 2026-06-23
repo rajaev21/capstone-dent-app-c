@@ -296,7 +296,7 @@ $role = $_SESSION['role'];
             end
           })
         })
-        fetch('http://localhost:5000/saveEditedEvents', {
+        fetch('https://dent-flask-production.up.railway.app/saveEditedEvents', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -393,7 +393,7 @@ $role = $_SESSION['role'];
       },
       events: async function(fetchInfo, successCallback, failureCallback) {
         try {
-          const response = await fetch(`http://localhost:5000/getAppointments?role=${role}&user_id=${user_id}`);
+          const response = await fetch(`https://dent-flask-production.up.railway.app/getAppointments?role=${role}&user_id=${user_id}`);
           const data = await response.json();
           successCallback(data);
         } catch (error) {
@@ -554,13 +554,13 @@ $role = $_SESSION['role'];
     }
 
     async function loadServices() {
-      const response = await fetch('http://localhost:5000/getServices');
+      const response = await fetch('https://dent-flask-production.up.railway.app/getServices');
       const data = await response.json();
       return data;
     }
 
     async function getAppointmentServices(aid) {
-      const response = await fetch(`http://localhost:5000/getAppointmentServices?aid=${aid}`);
+      const response = await fetch(`https://dent-flask-production.up.railway.app/getAppointmentServices?aid=${aid}`);
       const data = await response.json();
       return data;
     }
@@ -884,7 +884,7 @@ $role = $_SESSION['role'];
 
       document.getElementById("cButton").addEventListener("click", function() {
         const reasonInput = document.getElementById("reason").value.trim();
-        const response = fetch(`http://localhost:5000/cancelBooked?aid=${id}&reason=${reasonInput}&user_id=${user_id}`);
+        const response = fetch(`https://dent-flask-production.up.railway.app/cancelBooked?aid=${id}&reason=${reasonInput}&user_id=${user_id}`);
         window.location.reload()
       })
     }
@@ -898,7 +898,7 @@ $role = $_SESSION['role'];
 
     async function openAdminRequestModal(event) {
       const overlapId = getOverlap(event).map(item => item.id)
-      const response = await fetch(`http://localhost:5000/getReason?aid=${event.id}`);
+      const response = await fetch(`https://dent-flask-production.up.railway.app/getReason?aid=${event.id}`);
       const reason = await response.json();
       if (reason.sentTo !== user_id) return;
       const adminRequestModal = new bootstrap.Modal(document.getElementById("adminRequest"));
@@ -916,7 +916,7 @@ $role = $_SESSION['role'];
     }
 
     function rejectAppointment(aid, reason) {
-      fetch(`http://localhost:5000/rejectAppointment?aid=${aid}&user_id=${user_id}&reason=${reason}`)
+      fetch(`https://dent-flask-production.up.railway.app/rejectAppointment?aid=${aid}&user_id=${user_id}&reason=${reason}`)
         .then(res => {
           if (!res.ok) throw new Error('Network response was not ok');
           return res.json();
@@ -929,7 +929,7 @@ $role = $_SESSION['role'];
     }
 
     function approveAppointment(aid, overlapId) {
-      fetch('http://localhost:5000/approveAppointment', {
+      fetch('https://dent-flask-production.up.railway.app/approveAppointment', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -973,12 +973,12 @@ $role = $_SESSION['role'];
     }
 
     async function isValidated() {
-      const response = await fetch(`http://localhost:5000/getCustomerDetails?user_id=${user_id}`);
+      const response = await fetch(`https://dent-flask-production.up.railway.app/getCustomerDetails?user_id=${user_id}`);
       const data = await response.json();
       return data;
     }
     async function isAppointedUser() {
-      const response = await fetch(`http://localhost:5000/isAppointed?user_id=${user_id}`);
+      const response = await fetch(`https://dent-flask-production.up.railway.app/isAppointed?user_id=${user_id}`);
       const data = await response.json();
       return data;
     }
@@ -989,7 +989,7 @@ $role = $_SESSION['role'];
       newAppointment.reason = document.getElementById("reason").value
       newAppointment.user_id = user_id
       newAppointment.services = selectedServices
-      fetch('http://localhost:5000/rescheduleRequest', {
+      fetch('https://dent-flask-production.up.railway.app/rescheduleRequest', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

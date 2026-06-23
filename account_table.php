@@ -33,7 +33,7 @@
             </thead>
             <tbody>
               <?php
-              $result = file_get_contents("http://localhost:5000/selectUser?&role=user");
+              $result = file_get_contents("https://dent-flask-production.up.railway.app/selectUser?&role=user");
               $result = json_decode($result, true);
               foreach ($result as $row) {
                 // customer_form.php?id=3

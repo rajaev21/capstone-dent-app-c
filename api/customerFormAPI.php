@@ -42,7 +42,7 @@ if (isset($_GET['appoint'])) {
     $conditions = $_GET['conditions'];
 
     $response = file_get_contents(
-        'http://localhost:5000/addCustomer?' .
+        'https://dent-flask-production.up.railway.app/addCustomer?' .
             '&id=' . urlencode($id) .
             '&firstName=' . urlencode($firstName) .
             '&middleName=' . urlencode($middleName) .

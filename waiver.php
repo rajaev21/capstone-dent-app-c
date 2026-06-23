@@ -152,7 +152,7 @@ $role = $_SESSION['role'];
 			const newAppointment = JSON.parse(sessionStorage.getItem("newAppointment"));
 			newAppointment.waiverDate = today
 			console.log(newAppointment)
-			fetch('http://localhost:5000/requestAppointment', {
+			fetch('https://dent-flask-production.up.railway.app/requestAppointment', {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json'
@@ -241,7 +241,7 @@ $role = $_SESSION['role'];
 			document.getElementById("submitRequest").disabled = false;
 			const dataURL = canvas.toDataURL("image/png");
 
-			fetch("http://localhost:5000/setSignature", {
+			fetch("https://dent-flask-production.up.railway.app/setSignature", {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json"

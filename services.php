@@ -15,7 +15,7 @@
       </tr>
     </thead>
     <tbody>
-      <?php $response = file_get_contents('http://localhost:5000/getBilling?user_id=' . $user);
+      <?php $response = file_get_contents('https://dent-flask-production.up.railway.app/getBilling?user_id=' . $user);
       $response = json_decode($response, true); ?>
       <?php if (count($response) > 0) : ?>
         <?php foreach ($response as $row) :
@@ -60,7 +60,7 @@
   const aid = <?= $aid ?>;
 
   async function getServices() {
-    const response = await fetch(`http://localhost:5000/getServices`);
+    const response = await fetch(`https://dent-flask-production.up.railway.app/getServices`);
     if (!response.ok) throw new Error("Failed to fetch services");
     return await response.json();
   }
@@ -128,7 +128,7 @@
       }
     })
 
-    fetch('http://localhost:5000/saveBilling', {
+    fetch('https://dent-flask-production.up.railway.app/saveBilling', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -150,7 +150,7 @@
   }
 
   function handleAddBilling(aid, user) {
-    fetch('http://localhost:5000/addBilling', {
+    fetch('https://dent-flask-production.up.railway.app/addBilling', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -183,7 +183,7 @@
       cancelButtonText: 'Cancel'
     }).then((result) => {
       if (result.isConfirmed) {
-        fetch('http://localhost:5000/deleteBilling', {
+        fetch('https://dent-flask-production.up.railway.app/deleteBilling', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'

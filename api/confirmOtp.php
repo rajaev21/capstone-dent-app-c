@@ -9,7 +9,7 @@ if (isset($_SESSION['otp'])) {
 
     if ($emailOtp == $userOtp) {
 
-        $response = file_get_contents('http://localhost:5000/login?' .
+        $response = file_get_contents('https://dent-flask-production.up.railway.app/login?' .
             '&username=' . urlencode($username));
         $response = json_decode($response, true);
         

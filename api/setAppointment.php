@@ -11,7 +11,7 @@ if (isset($_POST['submit'])) {
     $reason = $_POST['reason'];
 
     $response = file_get_contents(
-        'http://localhost:5000/setAppointment?' .
+        'https://dent-flask-production.up.railway.app/setAppointment?' .
             'date=' . urlencode($date) .
             '&startAppointment=' . urlencode($startAppointment) .
             '&endAppointment=' . urlencode($endAppointment) .

@@ -14,7 +14,7 @@
 <body>
     <?php
     include('nav.php');
-    $result = file_get_contents("http://localhost:5000/getHistory");
+    $result = file_get_contents("https://dent-flask-production.up.railway.app/getHistory");
     $result = json_decode($result, true);
     if (empty($result)) {
         echo "<div class='container mt-5'><h1 class='text-center'>No history found</h1></div>";

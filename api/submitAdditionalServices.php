@@ -9,7 +9,7 @@ if(isset($_POST['submit'])) {
                             
     
     $result = file_get_contents(
-        'http://localhost:5000/additionalServices?'.
+        'https://dent-flask-production.up.railway.app/additionalServices?'.
         'additionalServices='. urlencode($additionalServices) .
         '&user_id='. urlencode($user_id) .
         '&appointment_id='. urlencode($appointment_id) 

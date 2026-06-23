@@ -59,7 +59,7 @@ if (empty($_SESSION)) {
   });
 
   function loadNotifications() {
-    fetch(`http://localhost:5000/getNotification?user_id=<?= $_SESSION['id'] ?>`)
+    fetch(`https://dent-flask-production.up.railway.app/getNotification?user_id=<?= $_SESSION['id'] ?>`)
       .then(res => res.json())
       .then(data => {
         const notifList = document.getElementById("notifList");
@@ -109,7 +109,7 @@ if (empty($_SESSION)) {
   }
 
   function notificationRead() {
-    fetch('http://localhost:5000/notificationRead?user_id=<?= $_SESSION['id'] ?>')
+    fetch('https://dent-flask-production.up.railway.app/notificationRead?user_id=<?= $_SESSION['id'] ?>')
       .then(res => res.json())
       .then(() => {
         const badge = document.getElementById("notifBadge");
