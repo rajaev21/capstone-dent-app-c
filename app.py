@@ -39,7 +39,6 @@ def sendMailnotif(sub, aid, body):
     user = cursor.fetchone()
     cursor.close()
     sendto = user["email"]
-    print(sendto)
     msg = Message(subject=sub, recipients=[sendto], body=body)
     mail.send(msg)
 
@@ -436,7 +435,6 @@ def getBilling():
     result = cursor.fetchall()
     cursor.close()
     conn.close()
-    print(result)
     return result
 
 
@@ -683,7 +681,6 @@ def rescheduleRequest():
     cursor = conn.cursor(dictionary=True)
     data = request.get_json()
     appointment = data.get("newAppointment")
-    print(appointment)
     try:
         conn.start_transaction()
         cursor.execute(
@@ -723,7 +720,6 @@ def rescheduleRequest():
                     ),
                 )
                 services = appointment["services"]
-                print(appointment["user_id"])
                 for service in services:
                     cursor.execute(
                         """insert into service (user_id, appointment_id, remarks, service_type, dentist, total_payment,partial_payment, balance) values (%s,%s,%s,%s,%s,%s,%s,%s)""",
@@ -927,7 +923,6 @@ def getAppointmentServices():
     )
 
     result = cursor.fetchall()
-    print(result)
     cursor.close()
     conn.close()
     return jsonify(result)
@@ -945,7 +940,6 @@ def getAppointment():
     conn.commit()
 
     if role == "user":
-        print(user_id)
         query = """select
         ab.aid as id,
         concat('Appointments ', ab.aid) AS groupId,

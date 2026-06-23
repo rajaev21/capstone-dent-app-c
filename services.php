@@ -15,42 +15,41 @@
       </tr>
     </thead>
     <tbody>
-      <tr>
-        <?php $response = file_get_contents('http://localhost:5000/getBilling?user_id=' . $user);
-        $response = json_decode($response, true); ?>
-        <?php if (count($response) > 0) : ?>
-          <?php foreach ($response as $row) :
-            $date = new DateTime($row['last_updated']);
-          ?>
-      <tr id="<?= $row['id'] ?>">
-        <td>
-          <?= $date->format("d/m/Y"); ?>
-        </td>
-        <td>
-          <?= $row['remarks'] ?>
-        </td>
-        <td>
-          <?= $row['service_type'] ?>
-        </td>
-        <td>
-          <?= $row['dentist'] ?>
-        </td>
-        <td>
-          <?= $row['total_payment'] ?>
-        </td>
-        <td>
-          <?= $row['partial_payment'] ?>
-        </td>
-        <td>
-          <?= $row['balance'] ?>
-        </td>
-        <td>
-          <div class="btn btn-primary" onclick="handleBillEdit('<?= $row['id'] ?>')"><i class="bi bi-pencil-square"></i></div>
-          <div class="btn btn-danger" onclick="handleBillDelete('<?= $row['id'] ?>')"><i class="bi bi-trash"></i></div>
-        </td>
-      </tr>
-    <?php endforeach; ?>
-  <?php endif; ?>
+      <?php $response = file_get_contents('http://localhost:5000/getBilling?user_id=' . $user);
+      $response = json_decode($response, true); ?>
+      <?php if (count($response) > 0) : ?>
+        <?php foreach ($response as $row) :
+          $date = new DateTime($row['last_updated']);
+        ?>
+          <tr id="tr-<?= $row['id'] ?>">
+            <td>
+              <?= $date->format("d/m/Y"); ?>
+            </td>
+            <td>
+              <?= $row['remarks'] ?>
+            </td>
+            <td>
+              <?= $row['service_type'] ?>
+            </td>
+            <td>
+              <?= $row['dentist'] ?>
+            </td>
+            <td>
+              <?= $row['total_payment'] ?>
+            </td>
+            <td>
+              <?= $row['partial_payment'] ?>
+            </td>
+            <td>
+              <?= $row['balance'] ?>
+            </td>
+            <td>
+              <div class="btn btn-primary" onclick="handleBillEdit('<?= $row['id'] ?>')"><i class="bi bi-pencil-square"></i></div>
+              <div class="btn btn-danger" onclick="handleBillDelete('<?= $row['id'] ?>')"><i class="bi bi-trash"></i></div>
+            </td>
+          </tr>
+        <?php endforeach; ?>
+      <?php endif; ?>
     </tbody>
   </table>
 </div>
@@ -60,80 +59,59 @@
   const user_id = <?= $user ?>;
   const aid = <?= $aid ?>;
 
-  document.addEventListener("DOMContentLoaded", function() {
-    getServices()
-  })
-
-  // async function getCservice() {
-  //   const totalCost = document.getElementById("total-cost");
-  //   // const response = await fetch(`http://localhost:5000/getCustomerServices?user_id=${user_id}`);
-  //   // if (!response.ok) throw new Error("Failed to fetch complaints");
-  //   // const res = await response.json();
-  //   // console.log(res)
-
-  //   const total = res.map(item => item.servicePrice).reduce((x, y) => parseFloat(x) + parseFloat(y), 0)
-  //   const newdiv = document.createElement("div");
-  //   newdiv.textContent = total;
-  //   newdiv.classList.add("text-center", "fw-bold")
-  //   totalCost.appendChild(newdiv);
-  // }
-
   async function getServices() {
-    const servicesOptions = document.getElementById("services")
     const response = await fetch(`http://localhost:5000/getServices`);
-    if (!response.ok) throw new Error("Failed to fetch complaints");
-    const services = await response.json();
-    return services;
+    if (!response.ok) throw new Error("Failed to fetch services");
+    return await response.json();
   }
 
+  let cachedServices = null;
+  document.addEventListener("DOMContentLoaded", async () => {
+    cachedServices = await getServices();
+  });
+
   async function handleBillEdit(rowId) {
-    const tr = document.getElementById(rowId);
+    const tr = document.getElementById(`tr-${rowId}`);
     const tds = tr.querySelectorAll('td');
 
-    let services = [];
-    try {
-      services = await getServices();
-    } catch (err) {
-      console.error(err)
+    let services = cachedServices;
+    if (!services) {
+      try {
+        services = await getServices();
+      } catch (err) {
+        console.error('Could not load services:', err);
+        return;
+      }
     }
 
     tds.forEach((td, index) => {
       if (index === 0) return;
+
       if (index === tds.length - 1) {
-        td.innerHTML = `<div class="btn btn-success" onclick="save('${rowId}')"><i class="bi bi-check-lg"></i></div>`
+        td.innerHTML = `<div class="btn btn-success" onclick="save('${rowId}')"><i class="bi bi-check-lg"></i></div>`;
         return;
       }
 
       if (index === 2) {
         const currentValue = td.textContent.trim();
-
         const select = document.createElement('select');
-        select.className = "form-select";
-
+        select.className = 'form-select';
         select.innerHTML = services
-          .map(s => `<option value="${s.id}" ${s.service_type === currentValue ? "selected" : ""}>
-                   ${s.service_type}
-                 </option>`)
-          .join("");
-
-        td.innerHTML = "";
+          .map(s => `<option value="${s.id}" ${s.service_type === currentValue ? 'selected' : ''}>${s.service_type}</option>`)
+          .join('');
+        td.innerHTML = '';
         td.appendChild(select);
         return;
       }
 
       const value = td.textContent.trim();
-      let inputType = 'text';
-
-      if (index == [4] || index == [5] || index == [6]) {
-        inputType = 'number';
-      }
-
+      const inputType = (index === 4 || index === 5 || index === 6) ? 'number' : 'text';
       td.innerHTML = `<input type="${inputType}" value="${value}" class="form-control">`;
     });
   }
 
   function save(id) {
-    const tr = document.getElementById(id);
+    const tr = document.getElementById(`tr-${id}`);
     const tds = tr.querySelectorAll('td');
     var billings = []
 
@@ -171,7 +149,7 @@
       });
   }
 
-  function handleAddBilling(aid,user) {
+  function handleAddBilling(aid, user) {
     fetch('http://localhost:5000/addBilling', {
         method: 'POST',
         headers: {
@@ -225,10 +203,10 @@
               'success'
             );
 
-            const tr = document.getElementById(id);
+            const tr = document.getElementById(`tr-${id}`);
             if (tr) tr.remove();
           })
-          // .then(() => window.location.reload())
+          .then(() => window.location.reload())
           .catch(error => {
             Swal.fire(
               'Error!',
